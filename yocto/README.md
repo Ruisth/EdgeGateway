@@ -36,3 +36,4 @@ yocto/
 - Adicionar receitas para contratos inteligentes e CLI de gestão.
 - Integrar atualizações OTA utilizando swupdate ou Mender.
 - Criar testes automatizados (pTest) que cubram drivers, inferência e sincronização blockchain.
+ME
