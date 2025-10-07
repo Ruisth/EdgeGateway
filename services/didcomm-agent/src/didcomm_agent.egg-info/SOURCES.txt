@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/didcomm_agent/__init__.py
+src/didcomm_agent/crypto.py
+src/didcomm_agent/exceptions.py
+src/didcomm_agent/message.py
+src/didcomm_agent/service.py
+src/didcomm_agent.egg-info/PKG-INFO
+src/didcomm_agent.egg-info/SOURCES.txt
+src/didcomm_agent.egg-info/dependency_links.txt
+src/didcomm_agent.egg-info/requires.txt
+src/didcomm_agent.egg-info/top_level.txt
+tests/test_didcomm_agent.py

@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  didcomm-api:
+    build: .
+    image: edgegateway/didcomm-agent:dev
+    ports:
+      - "8000:8000"
+    environment:
+      - DIDCOMM_DB_PATH=/data/didcomm.sqlite
+    volumes:
+      - ./data:/data

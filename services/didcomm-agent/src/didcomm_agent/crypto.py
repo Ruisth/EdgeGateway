@@ -39,6 +39,9 @@ class KeyPair:
     def public_b64(self) -> str:
         return base64.urlsafe_b64encode(self.public_bytes).decode("ascii")
 
+    def private_b64(self) -> str:
+        return base64.urlsafe_b64encode(self.private_bytes).decode("ascii")
+
 
 def generate_keypair() -> KeyPair:
     """Generate a fresh X25519 key pair."""
@@ -51,6 +54,17 @@ def load_public_key(data_b64: str) -> x25519.X25519PublicKey:
     return x25519.X25519PublicKey.from_public_bytes(
         base64.urlsafe_b64decode(data_b64.encode("ascii"))
     )
+
+
+def load_private_key(data_b64: str) -> x25519.X25519PrivateKey:
+    return x25519.X25519PrivateKey.from_private_bytes(
+        base64.urlsafe_b64decode(data_b64.encode("ascii"))
+    )
+
+
+def keypair_from_private_b64(priv_b64: str) -> KeyPair:
+    priv = load_private_key(priv_b64)
+    return KeyPair(priv, priv.public_key())
 
 
 def derive_shared_key(our_private: x25519.X25519PrivateKey, peer_public: x25519.X25519PublicKey) -> bytes:

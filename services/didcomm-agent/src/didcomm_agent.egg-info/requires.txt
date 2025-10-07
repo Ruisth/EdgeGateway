@@ -1,0 +1,4 @@
+cryptography<43,>=42
+
+[dev]
+pytest<9,>=8
