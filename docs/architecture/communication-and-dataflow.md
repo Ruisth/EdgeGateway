@@ -13,7 +13,8 @@ blockchain que mantém o Digital Twin.
 3. **Edge Service Mesh** – sidecars tratam descoberta, mTLS e políticas derivadas do ledger. Eles
    expõem APIs REST/gRPC para microsserviços responsáveis por IA, armazenamento e sincronização.
 4. **Canais externos** – conexões seguras (TLS 1.3, VPN ou QUIC) para a nuvem e para nós
-   validadores da blockchain.
+   validadores da blockchain. Para o intercâmbio com o Digital Twin é estabelecida uma sessão
+   DIDComm par-a-par, encapsulada nesses túneis quando necessário.
 
 ## Pipeline de dados
 1. **Ingestão**: adaptadores coletam dados e publicam no broker MQTT.
@@ -24,16 +25,20 @@ blockchain que mantém o Digital Twin.
 4. **Ação local**: controladores escrevem comandos de volta aos dispositivos ou ajustam políticas
    do gateway.
 5. **Persistência e sincronização**: apenas estados relevantes são enviados ao Digital Twin via
-   smart contracts, enquanto dados brutos são encaminhados a data lakes quando permitido.
+   smart contracts, enquanto dados brutos são encaminhados a data lakes quando permitido. O
+   tráfego operacional sensível usa envelopes DIDComm encriptados antes de atingir o ledger ou
+   qualquer serviço cloud.
 
 ## Considerações operacionais
 - **QoS e latência**: use QoS 1 ou 2 no MQTT para eventos críticos e defina filas de prioridade.
 - **Segurança**: certifique-se de que todos os tópicos críticos exigem certificados gerenciados
-  pelo módulo TPM. Tokens efêmeros são emitidos pelos contratos inteligentes.
+   pelo módulo TPM. Tokens efêmeros são emitidos pelos contratos inteligentes. Para mensagens
+   DIDComm, valide a rotação de chaves pairwise e sincronize revogações com o ledger.
 - **Resiliência**: configure replicação ativa-passiva do broker e mantenha checkpoints de inferência
   para recuperação rápida.
 - **Compliance**: aplique políticas de retenção descritas no paper, garantindo anonimização antes
-  de enviar dados sensíveis à nuvem.
+   de enviar dados sensíveis à nuvem. Metadados DIDComm devem ser agregados com identificadores
+   pseudonimizados para fins de auditoria.
 
 ## Próximos passos
 - Modelar diagramas sequence/PlantUML baseados neste texto.

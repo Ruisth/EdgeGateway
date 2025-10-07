@@ -1,0 +1,45 @@
+# DIDComm Agent Service
+
+Este diretório contém o protótipo inicial do agente DIDComm do Edge Gateway. O objetivo é
+fornecer uma implementação mínima viável (MVP) para troca de mensagens seguras entre o
+Edge Gateway e o Digital Twin utilizando chaves X25519, envelopes autenticados e políticas de
+rotação.
+
+## Estrutura
+```
+services/didcomm-agent/
+├── README.md
+├── requirements.txt
+├── pyproject.toml
+├── src/
+│   └── didcomm_agent/
+│       ├── __init__.py
+│       ├── crypto.py
+│       ├── exceptions.py
+│       ├── message.py
+│       └── service.py
+├── tests/
+│   ├── conftest.py
+│   └── test_didcomm_agent.py
+└── examples/
+    └── demo_exchange.py
+```
+
+## Início rápido
+1. Instale as dependências:
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
+2. Execute os testes:
+   ```bash
+   python -m pytest
+   ```
+3. Rode o exemplo de troca de mensagens:
+   ```bash
+   python examples/demo_exchange.py
+   ```
+
+## Próximos passos
+- Integrar armazenamento de chaves via TPM.
+- Adicionar suporte a anexos DIDComm (attachments) e controle de versões.
+- Expor uma API REST/gRPC com autenticação OAuth2 para outros serviços do gateway.

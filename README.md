@@ -28,6 +28,8 @@ ambiente e apontadores para o desenvolvimento com Yocto Project.
 │       └── meta-edgegateway/    # Camada personalizada descrita no paper
 │           ├── conf/layer.conf
 │           └── recipes-core/images/edgegateway-image.bb
+├── services/
+│   └── didcomm-agent/           # Protótipo do agente DIDComm (código e testes)
 ├── .gitignore
 ├── LICENSE
 └── README.md
@@ -84,6 +86,11 @@ Um exemplo de receita placeholder foi criado: `yocto/layers/meta-edgegateway/rec
   políticas de segurança derivadas do ledger.
 - Implementar estratégias de observabilidade e automação OTA alinhadas aos requisitos do paper.
 - Elaborar casos de uso detalhados e fluxos de dados na pasta `docs/architecture/`.
+
+### MVP DIDComm
+- Documento de arquitetura: `docs/architecture/didcomm-architecture.md`.
+- Serviço Python de referência: `services/didcomm-agent/` com troca de mensagens cifradas e testes unitários.
+- Exemplo CLI: `services/didcomm-agent/examples/demo_exchange.py`.
 
 ## Licença
 Este projeto é distribuído sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
