@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MIT
 #
 # Bootstrap script for initializing the Yocto build environment for the
 # Edge Gateway project. It aligns with as recomendações do EdgeGateway_Paper.pdf,

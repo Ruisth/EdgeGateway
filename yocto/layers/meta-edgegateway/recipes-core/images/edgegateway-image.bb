@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MIT
 
 require recipes-core/images/core-image-minimal.bb
 
@@ -32,4 +32,4 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     openssh-sftp-server \
 "
 
-LICENSE = "Apache-2.0"
+LICENSE = "MIT"
