@@ -12,6 +12,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     containerd \
     docker \
     docker-compose \
+    didcomm-agent-compose \
     python3 \
     chrony \
     curl \

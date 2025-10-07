@@ -1,0 +1,9 @@
+services:
+  didcomm-api:
+    image: edgegateway/didcomm-agent:dev
+    restart: unless-stopped
+    environment:
+      - DIDCOMM_DB_PATH=/data/didcomm.sqlite
+    volumes:
+      - /var/lib/didcomm-agent:/data
+    network_mode: host
