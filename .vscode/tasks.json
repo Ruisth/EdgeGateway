@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Yocto: setup environment",
+      "type": "shell",
+      "command": "source scripts/setup-env.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "Yocto: build edgegateway image",
+      "type": "shell",
+      "command": "source scripts/setup-env.sh && bitbake edgegateway-image",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Documentation: lint Markdown",
+      "type": "shell",
+      "command": "npm exec -- markdownlint docs/**/*.md",
+      "problemMatcher": []
+    }
+  ]
+}
