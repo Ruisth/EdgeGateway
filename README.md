@@ -77,6 +77,9 @@ de marcos.
 - Definir o hardware-alvo (SoC, conectividade, memória) e adicionar camadas BSP correspondentes.
 - Especificar a pilha de containers (orquestrador, broker MQTT, agentes blockchain, módulos de IA)
   utilizando recipientes em `recipes-containers/` (a serem adicionados).
+
+Nota: foram adicionados placeholders em `yocto/layers/meta-edgegateway/recipes-containers/`.
+Um exemplo de receita placeholder foi criado: `yocto/layers/meta-edgegateway/recipes-containers/edgegateway-containers.bb`.
 - Configurar pipelines CI/CD que executem builds Yocto, testes de conformidade e verificação de
   políticas de segurança derivadas do ledger.
 - Implementar estratégias de observabilidade e automação OTA alinhadas aos requisitos do paper.
