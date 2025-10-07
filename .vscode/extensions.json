@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "ms-vscode.cpptools",
+    "ms-python.python",
+    "ms-azuretools.vscode-docker",
+    "yocto-project.yocto",
+    "redhat.vscode-yaml",
+    "bierner.markdown-preview-github-styles"
+  ]
+}

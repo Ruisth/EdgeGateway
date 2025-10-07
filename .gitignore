@@ -1,0 +1,17 @@
+# Yocto build artifacts
+build/
+yocto/build/
+yocto/downloads/
+yocto/sstate-cache/
+yocto/tmp/
+
+# VSCode
+.vscode/settings.local.json
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
