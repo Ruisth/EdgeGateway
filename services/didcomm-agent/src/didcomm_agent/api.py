@@ -80,6 +80,11 @@ if _db_path:
     state.storage = Storage(Path(_db_path))
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.post("/agent", response_model=InvitationResponse)
 async def create_agent(req: CreateAgentRequest):
     agent = state.agents.get(req.agent_id)
