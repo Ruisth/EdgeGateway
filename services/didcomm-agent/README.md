@@ -8,27 +8,27 @@ para criptografia autenticada e envelopes JSON compatíveis com o espírito do D
 ## Estrutura
 ```
 services/didcomm-agent/
-├── README.md
-├── requirements.txt
-├── pyproject.toml
-├── Dockerfile
-├── docker-compose.yml
-├── src/
-│   └── didcomm_agent/
-│       ├── __init__.py
-│       ├── api.py              # API FastAPI (HTTP)
-│       ├── crypto.py           # X25519 + ChaCha20-Poly1305 + HKDF
-│       ├── exceptions.py
-│       ├── message.py          # Dataclasses de mensagem/envelope
-│       ├── service.py          # Lógica do agente DIDComm
-│       └── storage.py          # Persistência opcional (SQLite)
-├── tests/
-│   ├── conftest.py
-│   ├── test_didcomm_agent.py   # Núcleo do agente
-│   └── test_api.py             # Fluxo E2E via HTTP (FastAPI)
-└── examples/
-    ├── demo_exchange.py        # Demonstração local (sem HTTP)
-    └── smoke_api.py            # Smoke test HTTP (para o container/API)
+  README.md
+  requirements.txt
+  pyproject.toml
+  Dockerfile
+  docker-compose.yml
+  src/
+    didcomm_agent/
+      __init__.py
+      api.py              # API FastAPI (HTTP)
+      crypto.py           # X25519 + ChaCha20-Poly1305 + HKDF
+      exceptions.py
+      message.py          # Dataclasses de mensagem/envelope
+      service.py          # Lógica do agente DIDComm
+      storage.py          # Persistência opcional (SQLite)
+  tests/
+    conftest.py
+    test_didcomm_agent.py # Núcleo do agente
+    test_api.py           # Fluxo E2E via HTTP (FastAPI)
+  examples/
+    demo_exchange.py      # Demonstração local (sem HTTP)
+    smoke_api.py          # Smoke test HTTP (para o container/API)
 ```
 
 ## Início rápido (local)
@@ -41,13 +41,14 @@ services/didcomm-agent/
 4. Subir a API localmente (modo desenvolvimento):
    - uvicorn didcomm_agent.api:app --host 0.0.0.0 --port 8000
 
-Observação Windows: se tiver problemas com cURL/PowerShell ao enviar JSON com aspas, use o script `examples/smoke_api.py` para validar o fluxo HTTP.
+Observação (Windows): se tiver problemas com cURL/PowerShell ao enviar JSON com aspas,
+use o script `examples/smoke_api.py` para validar o fluxo HTTP.
 
 ## API HTTP (FastAPI)
 Endpoints principais (corpo/respostas simplificados):
 - POST /agent: cria/recupera um agente local (idempotente)
-- POST /accept: aceita convite de outro agente e devolve contra‑convite
-- POST /complete: completa handshake com o contra‑convite
+- POST /accept: aceita convite de outro agente e devolve contra-convite
+- POST /complete: completa handshake com o contra-convite
 - GET  /peers?agent_id=...: lista DIDs pareados
 - POST /send: envia mensagem segura para um peer
 - POST /receive: recebe/desempacota envelope
@@ -63,7 +64,7 @@ Opção 1: Docker Compose (recomendado para desenvolvimento)
 - docker compose up --build
 
 Isto irá:
-- construir a imagem baseada em python:3.12‑slim,
+- construir a imagem baseada em python:3.12-slim,
 - expor a API em http://localhost:8000,
 - mapear ./data -> /data (para persistência SQLite se habilitada).
 
@@ -75,7 +76,7 @@ Healthcheck:
 - GET http://localhost:8000/health → {"status":"ok"}
 
 ## Smoke test HTTP (container)
-Para validar o fluxo fim‑a‑fim (convite, handshake, envio/recebimento):
+Para validar o fluxo fim-a-fim (convite, handshake, envio/recebimento):
 - Certifique-se de que o container está rodando e ouvindo em :8000.
 - Execute: python examples/smoke_api.py
 
@@ -83,17 +84,16 @@ Saída esperada (resumo):
 - health: {"status":"ok"}
 - message: objeto JSON com o corpo recebido pelo par.
 
-Em Windows/PowerShell, preferimos este script em vez de invocações cURL complexas devido a questões de quoting.
+No Windows/PowerShell, prefira este script em vez de invocações cURL complexas devido a questões de quoting.
 
 ## Persistência (SQLite)
-- Defina DIDCOMM_DB_PATH para habilitar persistência: por exemplo, 
-  /data/didcomm.sqlite (já montado no compose).
+- Defina DIDCOMM_DB_PATH para habilitar persistência: por exemplo, /data/didcomm.sqlite (já montado no compose).
 - O serviço persiste agentes (chave privada base64 + metadados) e peers (chave pública base64, DID, endpoint, label).
 - No boot da API, se um agente existir em storage, ele é restaurado.
 
 ## Segurança e limites atuais
 - MVP para POCs: chaves X25519 voláteis a menos que a persistência esteja ativa.
-- Não há autenticação HTTP ainda (p/ laboratório). Coloque atrás de rede confiável.
+- Não há autenticação HTTP ainda (para laboratório). Coloque atrás de rede confiável.
 - Sem anexos DIDComm, revogação ou reenvio offline ainda.
 
 ## Próximos passos
