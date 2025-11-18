@@ -1,46 +1,41 @@
-# Fluxos de Comunicação e Dados do Edge Gateway
+# Communication and Dataflow
 
-Adaptação prática dos fluxos descritos no `EdgeGateway_Paper.pdf`. Use como guia para implementar integrações entre dispositivos IoT, serviços de IA local, nuvem e blockchain/Digital Twin.
+Blueprint for how the Edge Gateway routes data between IoT devices, local services and the blockchain-backed Digital Twin.
 
-## Camadas de conectividade
-| Camada | Protocolos | Responsabilidades |
-| --- | --- | --- |
-| Campo | Modbus, OPC-UA, BLE, Zigbee, Thread, Wi-Fi, 5G/LTE | Coletores e adaptadores convertem dados para JSON/Avro. |
-| Barramento interno | MQTT + fila persistente (RabbitMQ/NATS JetStream) | Segrega tópicos por domínio: telemetria, comandos, eventos do gêmeo. |
-| Edge Service Mesh | sidecars com mTLS, descoberta e políticas | Expõe APIs REST/gRPC para IA, armazenamento e sincronização. |
-| Canais externos | TLS 1.3, VPN, QUIC, DIDComm encapsulado | Conecta nuvem e validadores blockchain, com QoS/latência controlados. |
+## Data sources and sinks
+- Sensors/actuators: MQTT/AMQP, Modbus, OPC-UA, BLE, Thread, Wi-Fi 6/6E, 5G/LTE.
+- Embedded AI pipelines: containers with TensorFlow Lite or ONNX Runtime.
+- Digital Twin and blockchain: smart contracts storing identities, policies and audit trails.
+- Cloud/laboratory: dashboards, heavy training pipelines, corporate integrations.
 
-## Pipeline de dados
-1. **Ingestão** – adaptadores publicam no broker MQTT usando QoS alinhado à criticidade.
-2. **Normalização** – funções de stream processing convertem unidades, enriquecem metadados e validam esquemas.
-3. **Inferência local** – modelos embarcados (TensorFlow Lite/ONNX Runtime) geram decisões/predições.
-4. **Ação local** – controladores escrevem comandos no barramento ou ajustam políticas do gateway.
-5. **Persistência & sincronização** – deltas relevantes seguem para o Digital Twin (smart contracts) e data lakes autorizados.
+## Message flows
+1. Device publishes raw telemetry via MQTT → queued with QoS.
+2. Edge service enriches/normalises payloads → routes to inference pipeline.
+3. Inference result triggers actuation and updates the Digital Twin via blockchain agent.
+4. Cloud dashboards subscribe to curated topics; sensitive data remains local unless policies allow replication.
 
-## Políticas de QoS e latência
-| Fluxo | QoS MQTT | Latência alvo | Observações |
-| --- | --- | --- | --- |
-| Telemetria crítica (sensores de segurança) | 1 ou 2 | < 200 ms | Replicação ativa-passiva e janela de reenvio garantida. |
-| Comandos de atuação | 2 | < 150 ms | Confirmar recibo antes de aplicar. |
-| Eventos de governança (Twin) | 1 | < 5 s | Podem ser agregados antes do envio ao ledger. |
-| Telemetria não crítica | 0 | Best effort | Pode ser filtrada localmente. |
+```text
+[Sensor] --MQTT--> [Event bus] --Filter/Normalise--> [AI pipeline] --Result--> [Actuator]
+                                                           |                     |
+                                                           v                     v
+                                                  [Blockchain agent]      [Digital Twin]
+```
 
-## Segurança e resiliência
-- Certificados e tokens emitidos pelo módulo TPM e smart contracts; chaves pairwise DIDComm com rotação programada.
-- Sidecars validam políticas assinadas no ledger antes de liberar tráfego para cada domínio.
-- Broker MQTT configurado com autenticação mTLS e ACLs baseadas em claims.
-- Checkpoints de inferência e filas persistentes garantem retomada após falhas.
+## QoS and routing rules
+- Use topic namespaces per logical domain (e.g. `factory/line1/*`, `home/living-room/*`).
+- Retain messages where replay is essential; expire transient topics quickly.
+- Apply backpressure with persistent queues for critical paths.
+- Isolate tenant domains with authentication and authorisation tied to the blockchain identity layer.
 
-## Observabilidade
-- Métricas: throughput por tópico, latência P50/P95, falhas de entrega, número de envelopes DIDComm processados.
-- Logs estruturados com correlação (trace/span ID) e tags de dispositivo/DID.
-- Dashboards recomendados: ingestão vs. ação local, saúde do broker, backlog de sincronização do Twin.
+## Reliability and resilience
+- Watchdogs and health checks for brokers and AI containers.
+- A/B updates with rollback for the MQTT broker and blockchain agent containers.
+- Offline-first: buffer telemetry locally and reconcile with the Digital Twin when connectivity returns.
 
-## Próximos passos
-1. Criar diagramas sequence/PlantUML nesta pasta (`communication-flow.puml`).
-2. Definir contratos JSON Schema/Avro para os principais tópicos (telemetria crítica, comandos, auditoria).
-3. Automatizar testes de carga focados em MQTT (por exemplo, `locust` ou `mqtt-stresser`).
-4. Documentar procedimentos de failover para cada camada (broker, mesh, canais externos).
+## Security controls
+- mTLS for all services; certificates anchored in TPM/HSM.
+- Encrypted storage for persistent queues and AI artefacts.
+- DIDComm used for secure agent-to-agent messaging and key rotation.
+- Audit events signed and anchored to the blockchain ledger.
 
-> Última revisão: 2025-11-18
-
+> Last reviewed: 2025-11-18

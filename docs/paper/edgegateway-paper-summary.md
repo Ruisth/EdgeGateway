@@ -1,48 +1,19 @@
-# Resumo do paper "EdgeGateway_Paper.pdf"
+# EdgeGateway Paper – Navigable Summary
 
-Síntese dos principais pontos do documento original. Use-o como índice rápido antes de consultar o PDF completo.
+Reference map to quickly access sections of `EdgeGateway_Paper.pdf`.
 
-## 1. Visão geral
-- Gateway conecta sensores/atuadores locais, pipelines de IA na nuvem e um Digital Twin na blockchain.
-- Foco em confiabilidade, privacidade e governança de dados.
-- Ciclo de vida: aquisição → inferência local → sincronização → observabilidade/auditoria.
+## Sections
+- Introduction and motivation – pp. 1-3.
+- Related work (personal AI + blockchain) – pp. 4-6.
+- Architecture of the Edge Gateway – pp. 7-11.
+- DIDComm integration and security model – pp. 12-15.
+- Yocto implementation and containers – pp. 16-18.
+- Experiments and results – pp. 19-21.
+- Roadmap and future work – pp. 22-23.
 
-## 2. Componentes principais
-| Camada | Destaques | Cross-refs |
-| --- | --- | --- |
-| Dispositivos IoT | Sensores industriais, residenciais e wearables. | `docs/architecture/communication-and-dataflow.md` |
-| Edge Gateway | Containers, broker MQTT, storage efêmero, agentes blockchain e IA embarcada. | `yocto/README.md`, `README.md` |
-| Digital Twin/Blockchain | Contratos inteligentes com identidades, políticas e trilhas de auditoria. | `docs/architecture/didcomm-architecture.md` |
-| Serviços de Nuvem | Treinamento pesado, dashboards, data lakes privados/públicos. | `docs/research/blockchain-personal-ai-summary.md` |
+## How to use this summary
+- Treat it as a navigable table of contents when consulting the PDF.
+- Note errata or amendments here whenever sections change.
+- Link decisions in `docs/adr/` to the corresponding pages in the PDF for quick traceability.
 
-## 3. Requisitos de arquitetura
-- Segurança ponta a ponta (TPM, TLS/DTLS, DIDComm, controle de acesso por contratos).
-- Alta disponibilidade (containers redundantes, monitoramento, atualizações OTA).
-- Observabilidade com métricas, logs e tracing.
-- Governança de dados (retenção local, replicação seletiva, anonimização pré-envio).
-
-## 4. Pipeline funcional
-1. **Aquisição** – drivers normalizam protocolos heterogêneos.
-2. **Processamento local** – inferência embarcada reduz latência e custo de tráfego.
-3. **Orquestração** – barramento de eventos + service mesh aplicam políticas.
-4. **Sincronização** – apenas deltas relevantes atingem o Digital Twin.
-5. **Supervisão** – dashboards/APIs expõem estado e integração com sistemas externos.
-
-## 5. Implicações para o desenvolvimento
-- Yocto deve agregar BSPs do hardware escolhido, containers, brokers MQTT, agentes blockchain e toolchains de IA.
-- DevSecOps: integração com registries privados, varredura de imagens, testes de conformidade com políticas do ledger.
-- Versionamento rigoroso e backup/restore para dados sensíveis gerados no edge.
-
-## 6. Conteúdos recomendados no PDF
-| Seção do PDF | Descrição | Onde aplicar |
-| --- | --- | --- |
-| Cap. 2 | Requisitos funcionais e não funcionais | Atualizar ADMs/ADRs em `docs/architecture/`. |
-| Cap. 3 | Arquitetura lógica e física | Modelar diagramas no repositório. |
-| Cap. 4 | Estratégias de IA e pipelines | Expandir `docs/research/`. |
-| Cap. 5 | Blockchain e governança | Alimentar contratos e políticas do DIDComm. |
-| Apêndice | Métricas e SLAs | Atualizar tabelas de requisitos. |
-
-> Para dúvidas específicas, registre uma issue com a referência da página do PDF.
-
-> Última revisão: 2025-11-18
-
+> Last reviewed: 2025-11-18
