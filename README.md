@@ -1,91 +1,73 @@
 # Edge Gateway para IA Pessoal baseada em Blockchain
 
-Este repositório organiza os artefatos iniciais do projeto descrito no paper
-EdgeGateway_Paper.pdf, que detalha a construção de um Edge Gateway capaz de conectar
-sensores locais, pipelines de IA embarcada e um Digital Twin protegido por blockchain.
-Aqui você encontra a estrutura recomendada de diretórios, documentação base, scripts de
-ambiente e apontadores para o desenvolvimento com Yocto Project.
+Base de conhecimento e código do Edge Gateway descrito no paper `EdgeGateway_Paper.pdf`. O objetivo é conectar sensores locais, pipelines de IA embarcada e um Digital Twin protegido por blockchain, mantendo soberania de dados, inferência de baixa latência e governança auditável.
+
+## Visão geral rápida
+- **Stack principal**: Yocto Project + containers OCI, pipelines de IA embarcada e agentes blockchain/DIDComm.
+- **Documentação**: modelos arquiteturais em `docs/`, resumo do paper e planos de marcos.
+- **Serviços**: protótipo do agente DIDComm em `services/didcomm-agent/`.
+- **Infra**: scripts e tarefas de VS Code para preparar o ambiente de build.
+
+## Como começar
+1. **Clonar e abrir no VS Code** – as extensões sugeridas estão em `.vscode/extensions.json`.
+2. **Adicionar submódulos Yocto/BSP**
+   ```bash
+   git submodule add git://git.yoctoproject.org/poky yocto/poky
+   git submodule update --init --recursive
+   ```
+3. **Inicializar ambiente** – rode `source scripts/setup-env.sh` (ou a task `setup environment` do VS Code).
+4. **Construir imagem de referência** – execute `bitbake edgegateway-image` dentro do ambiente.
+5. **Documentar decisões** – atualize os arquivos em `docs/` conforme as escolhas de arquitetura e hardware evoluírem.
 
 ## Estrutura do repositório
 ```text
-.vscode/                        # Configurações compartilhadas do Visual Studio Code
-  extensions.json               # Extensões para Yocto, Docker, YAML e Markdown
-  settings.json                 # Preferências de formatação, lint e telemetria
-  tasks.json                    # Tarefas para preparar ambiente e compilar imagens Yocto
-docs/
-  architecture/                 # Modelos de arquitetura e fluxos descritos no paper
-    system-architecture.md
-    communication-and-dataflow.md
-  paper/                        # Anotações e síntese do EdgeGateway_Paper.pdf
-    edgegateway-paper-summary.md
-  roadmaps/                     # Backlog inicial e marcos do desenvolvimento
-    milestone-plan.md
-scripts/                        # Scripts utilitários
-  setup-env.sh                  # Inicialização do ambiente Yocto/BitBake
-yocto/
-  README.md                     # Guia de camadas, imagens e customizações
-  layers/
-    meta-edgegateway/           # Camada personalizada descrita no paper
-      conf/layer.conf
-      recipes-core/images/edgegateway-image.bb
+.vscode/                     Definições de tarefas, lint e extensões recomendadas
+docs/                        Bases de arquitetura, pesquisa e roadmap
+  architecture/              Arquitetura de sistema, fluxos e DIDComm
+  paper/                     Resumo navegável do EdgeGateway_Paper.pdf
+  research/                  Estudos complementares sobre IA pessoal e blockchain
+  roadmaps/                  Marcos técnicos e backlog inicial
+scripts/                     Scripts utilitários (ex.: setup-env.sh)
 services/
-  didcomm-agent/                # Protótipo do agente DIDComm (código e testes)
-.gitignore
-LICENSE
-README.md
+  didcomm-agent/             Serviço FastAPI + testes para o agente DIDComm
+yocto/
+  README.md                  Guia rápido de camadas e receitas
+  layers/meta-edgegateway/   Receita edgegateway-image e espaço para containers
+EdgeGateway_Paper.pdf        Referência completa do projeto
+LICENSE                      Licença MIT
 ```
 
-## Referencial técnico do EdgeGateway_Paper.pdf
-O paper descreve um gateway que integra dispositivos IoT, microsserviços containerizados e
-sincronização com um Digital Twin em blockchain. A principal missão é garantir a soberania
-do usuário, oferecendo inferência local de IA, políticas de governança auditáveis e canais
-seguros de compartilhamento de dados. Consulte o resumo em `docs/paper/edgegateway-paper-summary.md`
-para navegar pelos requisitos funcionais, componentes e implicações para o desenvolvimento.
+## Documentação recomendada
+| Tema | Onde começar | Por que importa |
+| --- | --- | --- |
+| Arquitetura de sistema | `docs/architecture/system-architecture.md` | Visão 360° dos módulos do gateway |
+| Fluxos de dados e comunicação | `docs/architecture/communication-and-dataflow.md` | Regras de QoS, protocolos e requisitos operacionais |
+| Subsistema DIDComm | `docs/architecture/didcomm-architecture.md` + `services/didcomm-agent/README.md` | Guia para o MVP de mensageria segura |
+| Resumo do paper | `docs/paper/edgegateway-paper-summary.md` | Índice rápido do PDF original |
+| Roadmap | `docs/roadmaps/milestone-plan.md` | Sequenciamento das fases do projeto |
 
-### Domínios abordados
-- Hardware e conectividade: suporte a protocolos industriais e residenciais, módulos TPM,
-  5G/LTE e redes mesh locais.
-- Pipeline de IA: modelos embarcados para inferência em tempo real e comunicação com
-  pipelines de treinamento em nuvem.
-- Blockchain e Digital Twin: contratos inteligentes para registrar identidade, políticas de
-  acesso e auditoria de eventos.
-- Observabilidade e DevSecOps: telemetria, gestão de logs, atualizações OTA e integração
-  contínua para receitas Yocto e imagens container.
+## Guia Yocto em 5 minutos
+1. Garanta que `yocto/poky` e camadas BSP estejam presentes.
+2. Use o script `scripts/setup-env.sh` para exportar variáveis do BitBake.
+3. Certifique-se de que `yocto/layers/meta-edgegateway/conf/layer.conf` esteja habilitado no `bblayers.conf`.
+4. Ajuste `yocto/layers/meta-edgegateway/recipes-core/images/edgegateway-image.bb` adicionando pacotes (containers, MQTT, agentes blockchain, ferramentas de IA e observabilidade).
+5. Adicione receitas específicas em `recipes-containers/` e `recipes-security/` para refletir os requisitos do paper.
 
-## Como utilizar esta base
-1. Clonar o repositório e abrir no VSCode. As extensões sugeridas serão oferecidas
-   automaticamente. Revise `.vscode/settings.json` para personalizar linting e formatação.
-2. Adicionar o Poky (e eventualmente BSPs) como submódulos:
-   git submodule add git://git.yoctoproject.org/poky yocto/poky
-   git submodule update --init --recursive
-3. Inicializar o ambiente executando a tarefa Yocto: setup environment ou rodando manualmente:
-   source scripts/setup-env.sh
-4. Construir a imagem de referência:
-   bitbake edgegateway-image
-   A receita em `meta-edgegateway` inclui pacotes para containers, broker MQTT, agentes de
-   sincronização blockchain e ferramentas de observabilidade conforme descrito no paper.
-5. Documentar decisões no diretório `docs/`, expandindo os modelos de arquitetura e o plano
-   de marcos.
-6. Planejar integrações com pipelines de IA, dashboards e contratos inteligentes seguindo as
-   diretrizes capturadas no resumo do paper.
+Detalhes extras estão em `yocto/README.md` e devem ser expandidos conforme as customizações aumentarem.
 
-## Próximos passos sugeridos
-- Definir o hardware-alvo (SoC, conectividade, memória) e adicionar camadas BSP correspondentes.
-- Especificar a pilha de containers (orquestrador, broker MQTT, agentes blockchain, módulos de IA)
-  utilizando recipientes em `recipes-containers/` (a serem adicionados).
+## Serviço DIDComm
+- Código e testes em `services/didcomm-agent/`.
+- Stack: FastAPI + libsodium (X25519 + ChaCha20-Poly1305), com scripts de exemplo (`examples/demo_exchange.py`).
+- Rode `python -m pytest` para testes locais e `docker compose up --build` para a API containerizada.
+- A arquitetura conceitual está alinhada a `docs/architecture/didcomm-architecture.md`.
 
-Nota: foram adicionados placeholders em `yocto/layers/meta-edgegateway/recipes-containers/`.
-Um exemplo de receita placeholder foi criado: `yocto/layers/meta-edgegateway/recipes-containers/edgegateway-containers.bb`.
-- Configurar pipelines CI/CD que executem builds Yocto, testes de conformidade e verificação de
-  políticas de segurança derivadas do ledger.
-- Implementar estratégias de observabilidade e automação OTA alinhadas aos requisitos do paper.
-- Elaborar casos de uso detalhados e fluxos de dados na pasta `docs/architecture/`.
+## Roadmap e próximos passos
+1. **Fase 0** – definir hardware-alvo, BSPs e requisitos de segurança/compliance.
+2. **Fase 1** – estabilizar a camada `meta-edgegateway`, broker MQTT e agentes blockchain.
+3. **Fase 2** – observabilidade, governança de dados e automação OTA.
+4. **Fase 3** – pilotos com dispositivos reais e preparação para auditorias.
 
-### MVP DIDComm
-- Documento de arquitetura: `docs/architecture/didcomm-architecture.md`.
-- Serviço Python de referência: `services/didcomm-agent/` com troca de mensagens cifradas e testes unitários.
-- Exemplo CLI: `services/didcomm-agent/examples/demo_exchange.py`.
+Atualize `docs/roadmaps/milestone-plan.md` e os diagramas em `docs/architecture/` à medida que novas decisões forem tomadas (hardware, modelos de IA, contratos inteligentes etc.).
 
 ## Licença
-Este projeto é distribuído sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
-
+Distribuído sob a licença MIT – consulte `LICENSE` para detalhes.
