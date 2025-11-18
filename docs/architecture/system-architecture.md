@@ -1,55 +1,54 @@
-# Arquitetura de Sistema do Edge Gateway
+# Edge Gateway System Architecture
 
-Este documento consolida a visão macro, os componentes e os requisitos não-funcionais do Edge Gateway descrito no paper `EdgeGateway_Paper.pdf`. Ele serve como referência para decisões de engenharia e deve ser mantido alinhado aos experimentos conduzidos no laboratório e em campo.
+This document consolidates the macro view, components and non-functional requirements of the Edge Gateway described in `EdgeGateway_Paper.pdf`. It serves as a reference for engineering decisions and must stay aligned with experiments conducted in the lab and in the field.
 
-## Visão macro
-1. **Dispositivos IoT** – sensores industriais e residenciais, atuadores, wearables e controladores legados.
-2. **Edge Gateway** – plataforma Linux (Yocto) com suporte a containers OCI, aceleradores de IA e TPM.
-3. **Digital Twin + Blockchain** – contratos inteligentes que guardam identidades, políticas e auditoria.
-4. **Nuvem/Laboratório** – pipelines de IA pesada, dashboards e integrações corporativas.
+## Macro view
+1. **IoT devices** – industrial and residential sensors, actuators, wearables and legacy controllers.
+2. **Edge Gateway** – Linux platform (Yocto) with support for OCI containers, AI accelerators and TPM.
+3. **Digital Twin + Blockchain** – smart contracts that store identities, policies and audit data.
+4. **Cloud/Laboratory** – heavy AI pipelines, dashboards and corporate integrations.
 
 ```
 +-------------+        +-----------------+        +-------------------+
-| Dispositivos|<-----> | Edge Gateway    |<-----> | Digital Twin /    |
-| IoT         |        | (Yocto + OCI)   |        | Blockchain + Nuvem|
+| IoT         |<-----> | Edge Gateway    |<-----> | Digital Twin /    |
+| devices     |        | (Yocto + OCI)   |        | Blockchain + Cloud|
 +-------------+        +-----------------+        +-------------------+
 ```
 
-## Módulos principais
-| Módulo | Responsabilidades | Observações |
+## Core modules
+| Module | Responsibilities | Notes |
 | --- | --- | --- |
-| Gestão de conectividade | Drivers, adaptadores industriais/residenciais, roteamento seguro | Integrar protocolos Modbus, OPC-UA, BLE, Thread, Wi-Fi 6/6E e 5G/LTE. |
-| Barramento de eventos | MQTT/AMQP + filas persistentes | QoS configurável, tópicos segregados por domínio lógico e integração com fila de retry. |
-| Camada de IA | Inferência local (TensorFlow Lite/ONNX Runtime) com aceleradores (GPU/NPU) | Modelos versionados e atualizados OTA; checkpoints para retomada. |
-| Orquestração de containers | Container engine (Docker/Podman) + sistema supervisor (k3s, systemd, supervisord) | Deve suportar atualizações atômicas e rollback. |
-| Sincronização blockchain | Agentes que assinam transações, atualizam o Digital Twin e expõem APIs | Integra DIDComm e contratos inteligentes para governança. |
-| Observabilidade e DevSecOps | Telemetria (Prometheus), logs estruturados, tracing, OTA | Integra com CI/CD e políticas de segurança derivadas do ledger. |
+| Connectivity management | Drivers, industrial/residential adapters, secure routing | Integrate Modbus, OPC-UA, BLE, Thread, Wi-Fi 6/6E and 5G/LTE protocols. |
+| Event bus | MQTT/AMQP + persistent queues | Configurable QoS, topics segregated by logical domain and retry queue integration. |
+| AI layer | Local inference (TensorFlow Lite/ONNX Runtime) with accelerators (GPU/NPU) | Versioned models with OTA updates; checkpoints for resumption. |
+| Container orchestration | Container engine (Docker/Podman) + supervisor system (k3s, systemd, supervisord) | Must support atomic updates and rollback. |
+| Blockchain synchronisation | Agents that sign transactions, update the Digital Twin and expose APIs | Integrates DIDComm and smart contracts for governance. |
+| Observability and DevSecOps | Telemetry (Prometheus), structured logs, tracing, OTA | Integrates with CI/CD and security policies derived from the ledger. |
 
-## Requisitos transversais
-- **Segurança**: boot seguro, criptografia de disco, gestão de certificados via TPM/HSM, mTLS em todos os serviços e política de rotação automática de chaves.
-- **Confiabilidade**: watchdogs de software/hardware, atualizações A/B (swupdate ou Mender), detecção de auto-recuperação e limites de uso de recursos.
-- **Gerenciamento remoto**: APIs para provisionamento, configuração, coleta de inventário e atualizações OTA controladas.
-- **Compliance**: aderência a LGPD/GDPR com retenção seletiva e trilhas de auditoria assinadas na blockchain.
+## Cross-cutting requirements
+- **Security**: secure boot, disk encryption, certificate management via TPM/HSM, mTLS on all services and automatic key rotation policies.
+- **Reliability**: software/hardware watchdogs, A/B updates (swupdate or Mender), self-healing detection and resource usage limits.
+- **Remote management**: APIs for provisioning, configuration, inventory collection and controlled OTA updates.
+- **Compliance**: adherence to LGPD/GDPR with selective retention and audit trails signed on the blockchain.
 
-## Critérios de desempenho
-| Métrica | Meta inicial | Notas |
+## Performance criteria
+| Metric | Initial target | Notes |
 | --- | --- | --- |
-| Latência de inferência | < 100 ms para modelos críticos | Medida do evento MQTT ao comando aplicado. |
-| Disponibilidade do broker | >= 99,5% | Exige replicação ativa/passiva e detecção de falhas. |
-| Tempo de sincronização do Twin | < 5 s para estados críticos | Depende do SLA da blockchain escolhida. |
-| Consumo máximo de CPU | < 75% em operação nominal | Garante headroom para bursts e OTA. |
+| Inference latency | < 100 ms for critical models | Measured from MQTT event to command applied. |
+| Broker availability | >= 99.5% | Requires active/passive replication and fault detection. |
+| Twin synchronisation time | < 5 s for critical states | Depends on the SLA of the chosen blockchain. |
+| Maximum CPU consumption | < 75% in nominal operation | Ensures headroom for bursts and OTA. |
 
-## Roadmap técnico (alto nível)
-1. **BSP e hardware** – validar suporte a TPM, aceleração de IA e conectividade (Fase 0 do roadmap).
-2. **Base Yocto** – consolidar `meta-edgegateway`, configurar `edgegateway-image` e automatizar builds.
-3. **Pipelines CI/CD** – executar testes de integração de containers, inferência e contratos inteligentes.
-4. **Observabilidade** – instrumentar métrica/log/tracing e conectar dashboards.
-5. **Documentação viva** – manter diagramas PlantUML/Draw.io em `docs/architecture/diagrams/` (a criar) com versão controlada.
+## Technical roadmap (high level)
+1. **BSP and hardware** – validate support for TPM, AI acceleration and connectivity (Roadmap Phase 0).
+2. **Yocto base** – consolidate `meta-edgegateway`, configure `edgegateway-image` and automate builds.
+3. **CI/CD pipelines** – run integration tests for containers, inference and smart contracts.
+4. **Observability** – instrument metrics/log/tracing and connect dashboards.
+5. **Living documentation** – keep PlantUML/Draw.io diagrams in `docs/architecture/diagrams/` (to be created) under version control.
 
-## Checklist de atualização do documento
-- [ ] Diagrama atualizado após cada alteração estrutural significativa.
-- [ ] Tabela de métricas revisada quando novos SLAs forem definidos.
-- [ ] Links para decisões de arquitetura registrados na pasta `docs/adr/` (a ser criada).
+## Document update checklist
+- [ ] Diagram updated after each significant structural change.
+- [ ] Metrics table reviewed when new SLAs are defined.
+- [ ] Links to architectural decisions recorded in `docs/adr/` (to be created).
 
-> Última revisão: 2025-11-18
-
+> Last reviewed: 2025-11-18
