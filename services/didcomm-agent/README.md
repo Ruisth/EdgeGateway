@@ -1,9 +1,6 @@
 # DIDComm Agent Service
 
-Este diretório contém o protótipo do agente DIDComm do Edge Gateway. O objetivo é
-fornecer uma implementação mínima viável (MVP) para troca de mensagens seguras entre o
-Edge Gateway e o Digital Twin utilizando X25519 para acordo de chaves, ChaCha20-Poly1305
-para criptografia autenticada e envelopes JSON compatíveis com o espírito do DIDComm v2.
+Protótipo do agente DIDComm do Edge Gateway. Implementa um MVP para troca de mensagens seguras entre o Edge Gateway e o Digital Twin usando X25519 (acordo de chaves), ChaCha20-Poly1305 (criptografia autenticada) e envelopes compatíveis com DIDComm v2.
 
 ## Estrutura
 ```
@@ -13,91 +10,80 @@ services/didcomm-agent/
   pyproject.toml
   Dockerfile
   docker-compose.yml
-  src/
-    didcomm_agent/
-      __init__.py
-      api.py              # API FastAPI (HTTP)
-      crypto.py           # X25519 + ChaCha20-Poly1305 + HKDF
-      exceptions.py
-      message.py          # Dataclasses de mensagem/envelope
-      service.py          # Lógica do agente DIDComm
-      storage.py          # Persistência opcional (SQLite)
+  src/didcomm_agent/
+    api.py          # FastAPI / HTTP
+    crypto.py       # X25519 + HKDF + ChaCha20-Poly1305
+    service.py      # Lógica principal
+    message.py      # Dataclasses de mensagens/envelopes
+    storage.py      # Persistência opcional (SQLite)
   tests/
-    conftest.py
-    test_didcomm_agent.py # Núcleo do agente
-    test_api.py           # Fluxo E2E via HTTP (FastAPI)
+    test_*.py
   examples/
-    demo_exchange.py      # Demonstração local (sem HTTP)
-    smoke_api.py          # Smoke test HTTP (para o container/API)
+    demo_exchange.py
+    smoke_api.py
 ```
 
-## Início rápido (local)
-1. (Opcional) Criar venv e instalar dependências:
-   - python -m pip install -r requirements.txt
-2. Executar testes:
-   - python -m pytest
-3. Rodar o exemplo local (sem HTTP):
-   - python examples/demo_exchange.py
-4. Subir a API localmente (modo desenvolvimento):
-   - uvicorn didcomm_agent.api:app --host 0.0.0.0 --port 8000
+## Variáveis de ambiente
+| Variável | Descrição | Default |
+| --- | --- | --- |
+| `DIDCOMM_DB_PATH` | Caminho do SQLite para persistir agentes/peers. | vazio (memória) |
+| `DIDCOMM_AGENT_HOST` | Host de binding do FastAPI/Uvicorn. | `0.0.0.0` |
+| `DIDCOMM_AGENT_PORT` | Porta da API. | `8000` |
+| `DIDCOMM_LOG_LEVEL` | Nível de log (`info`, `debug`, etc.). | `info` |
+| `DIDCOMM_ENCRYPTION_BACKEND` | `libsodium` (atual) – reservado para futuros backends. | `libsodium` |
 
-Observação (Windows): se tiver problemas com cURL/PowerShell ao enviar JSON com aspas,
-use o script `examples/smoke_api.py` para validar o fluxo HTTP.
+## Início rápido (local)
+1. (Opcional) Criar venv e instalar dependências: `python -m pip install -r requirements.txt`.
+2. Executar testes: `python -m pytest`.
+3. Rodar exemplo local (sem HTTP): `python examples/demo_exchange.py`.
+4. Subir API: `uvicorn didcomm_agent.api:app --host 0.0.0.0 --port 8000`.
+
+> Dica Windows: se encontrar problemas ao usar cURL no PowerShell, utilize `python examples/smoke_api.py` para validar o fluxo HTTP.
 
 ## API HTTP (FastAPI)
-Endpoints principais (corpo/respostas simplificados):
-- POST /agent: cria/recupera um agente local (idempotente)
-- POST /accept: aceita convite de outro agente e devolve contra-convite
-- POST /complete: completa handshake com o contra-convite
-- GET  /peers?agent_id=...: lista DIDs pareados
-- POST /send: envia mensagem segura para um peer
-- POST /receive: recebe/desempacota envelope
-- GET  /health: healthcheck {"status":"ok"}
+Endpoints principais:
+- `POST /agent` – cria/recupera um agente local (idempotente).
+- `POST /accept` – aceita convite e devolve contra-convite.
+- `POST /complete` – finaliza handshake com o contra-convite.
+- `GET /peers?agent_id=...` – lista DIDs pareados.
+- `POST /send` – envia mensagem segura para um peer.
+- `POST /receive` – recebe/desempacota envelope.
+- `GET /health` – healthcheck `{"status":"ok"}`.
 
 Contrato mínimo:
-- Cada chamada inclui ou deriva um `agent_id` para suportar múltiplos agentes.
-- Mensagens são cifradas com chaves derivadas via X25519 + HKDF, e AAD vincula remetente/destinatário.
-- Persistência (SQLite) é opcional e controlada por variável de ambiente (veja abaixo).
+- Cada chamada inclui ou deriva `agent_id` para suportar múltiplos agentes.
+- Mensagens cifradas com chaves derivadas via X25519 + HKDF (AAD inclui remetente/destinatário).
+- Persistência (SQLite) é opcional e controlada por `DIDCOMM_DB_PATH`.
 
-## Executar com Docker
-Opção 1: Docker Compose (recomendado para desenvolvimento)
-- docker compose up --build
+## Execução com Docker
+### Docker Compose (desenvolvimento)
+```
+docker compose up --build
+```
+- Base: `python:3.12-slim`.
+- API exposta em `http://localhost:8000`.
+- Mapeia `./data -> /data` para persistência.
 
-Isto irá:
-- construir a imagem baseada em python:3.12-slim,
-- expor a API em http://localhost:8000,
-- mapear ./data -> /data (para persistência SQLite se habilitada).
-
-Opção 2: Docker puro
-- docker build -t didcomm-agent:dev .
-- docker run --rm -p 8000:8000 -e DIDCOMM_DB_PATH=/data/didcomm.sqlite -v %cd%/data:/data didcomm-agent:dev
-
-Healthcheck:
-- GET http://localhost:8000/health → {"status":"ok"}
-
-## Smoke test HTTP (container)
-Para validar o fluxo fim-a-fim (convite, handshake, envio/recebimento):
-- Certifique-se de que o container está rodando e ouvindo em :8000.
-- Execute: python examples/smoke_api.py
-
-Saída esperada (resumo):
-- health: {"status":"ok"}
-- message: objeto JSON com o corpo recebido pelo par.
-
-No Windows/PowerShell, prefira este script em vez de invocações cURL complexas devido a questões de quoting.
-
-## Persistência (SQLite)
-- Defina DIDCOMM_DB_PATH para habilitar persistência: por exemplo, /data/didcomm.sqlite (já montado no compose).
-- O serviço persiste agentes (chave privada base64 + metadados) e peers (chave pública base64, DID, endpoint, label).
-- No boot da API, se um agente existir em storage, ele é restaurado.
+### Docker CLI puro
+```
+docker build -t didcomm-agent:dev .
+docker run --rm -p 8000:8000 ^
+  -e DIDCOMM_DB_PATH=/data/didcomm.sqlite ^
+  -v %cd%/data:/data didcomm-agent:dev
+```
 
 ## Segurança e limites atuais
-- MVP para POCs: chaves X25519 voláteis a menos que a persistência esteja ativa.
-- Não há autenticação HTTP ainda (para laboratório). Coloque atrás de rede confiável.
-- Sem anexos DIDComm, revogação ou reenvio offline ainda.
+- MVP para POCs: chaves X25519 voláteis quando não há persistência.
+- Não há autenticação HTTP; coloque atrás de rede confiável/mTLS.
+- Sem anexos DIDComm, revogação ou reenvio offline garantido (fila básica apenas).
+- libsodium precisa estar instalado (já incluído nas dependências do projeto).
 
 ## Próximos passos
-- Integrar armazenamento de chaves via TPM/HSM.
-- Autenticação e autorização da API (mTLS, OAuth2).
-- Suporte a anexos DIDComm e filas para reenvio offline.
-- Receitas Yocto para empacotar o serviço na imagem final do Edge Gateway.
+1. Integrar armazenamento de chaves via TPM/HSM.
+2. Adicionar autenticação/autorização (mTLS, OAuth2 ou tokens emitidos pelo ledger).
+3. Suporte a anexos DIDComm e filas confiáveis para reenvio offline.
+4. Criar receitas Yocto/containers para deployment automatizado no Edge Gateway.
+5. Automatizar hardening (CIS Docker benchmark, dependabot, varredura SAST/DAST).
+
+> Última revisão: 2025-11-18
+
