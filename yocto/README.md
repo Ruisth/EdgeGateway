@@ -1,8 +1,8 @@
-# Guia Yocto para o Edge Gateway
+# Yocto guide for the Edge Gateway
 
-Traduz requisitos do `EdgeGateway_Paper.pdf` em ações concretas para customização da imagem Yocto.
+Translates the requirements from `EdgeGateway_Paper.pdf` into concrete actions for customising the Yocto image.
 
-## Estrutura
+## Structure
 ```text
 yocto/
   README.md
@@ -11,45 +11,44 @@ yocto/
       conf/layer.conf
       recipes-core/images/edgegateway-image.bb
       recipes-containers/ (placeholders)
-  poky/  # adicionar como submódulo
+  poky/  # add as a submodule
 ```
 
-## Pré-requisitos
-- Host Linux (ou WSL2) com: git, python3, tar, gcc, chrpath, cpio, gawk, make, xz, unzip, Locale en_US.UTF-8.
-- Espaço em disco: ≥ 50 GB; RAM: ≥ 16 GB (recomendado).
-- Variável `TEMPLATECONF` apontando para `meta-edgegateway/conf` ao inicializar o ambiente.
+## Prerequisites
+- Linux host (or WSL2) with: git, python3, tar, gcc, chrpath, cpio, gawk, make, xz, unzip, Locale en_US.UTF-8.
+- Disk space: ≥ 50 GB; RAM: ≥ 16 GB (recommended).
+- `TEMPLATECONF` variable pointing to `meta-edgegateway/conf` when initialising the environment.
 
-## Passos iniciais
-1. Adicionar Poky e camadas BSP do hardware-alvo.
-2. `source ../scripts/setup-env.sh` (exporta `TEMPLATECONF`, `BBPATH`, etc.).
-3. Atualizar `bblayers.conf` para incluir `meta-edgegateway` e BSPs.
-4. Executar `bitbake edgegateway-image`.
+## Initial steps
+1. Add Poky and BSP layers for the target hardware.
+2. `source ../scripts/setup-env.sh` (exports `TEMPLATECONF`, `BBPATH`, etc.).
+3. Update `bblayers.conf` to include `meta-edgegateway` and BSPs.
+4. Run `bitbake edgegateway-image`.
 
-## Conteúdo recomendado para `edgegateway-image`
-- Suporte a containers (Docker/Podman) e runtime OCI (crun/runc).
-- Broker MQTT (Eclipse Mosquitto) + fila persistente (RabbitMQ/NATS JetStream).
-- Ferramentas de IA (TensorFlow Lite, ONNX Runtime) e drivers de aceleradores.
-- Agentes blockchain, DIDComm e bibliotecas criptográficas (libsodium, openssl).
-- Stack de observabilidade (Prometheus Node Exporter, Fluent Bit, Grafana Agent).
-- Ferramentas OTA (swupdate ou Mender) e scripts de rollback.
+## Recommended content for `edgegateway-image`
+- Container support (Docker/Podman) and OCI runtime (crun/runc).
+- MQTT broker (Eclipse Mosquitto) + persistent queue (RabbitMQ/NATS JetStream).
+- AI tools (TensorFlow Lite, ONNX Runtime) and accelerator drivers.
+- Blockchain agents, DIDComm and cryptography libraries (libsodium, openssl).
+- Observability stack (Prometheus Node Exporter, Fluent Bit, Grafana Agent).
+- OTA tools (swupdate or Mender) and rollback scripts.
 
-## Variáveis úteis
-| Variável | Função |
+## Useful variables
+| Variable | Purpose |
 | --- | --- |
-| `MACHINE` | Define o hardware-alvo/BSP. |
-| `DISTRO` | Base da distribuição (ex.: `poky`, `edgegateway`). |
-| `BB_ENV_EXTRAWHITE` | Permite passar variáveis customizadas para o BitBake. |
-| `SSTATE_DIR` e `DL_DIR` | Diretórios compartilhados para acelerar builds. |
+| `MACHINE` | Defines the target hardware/BSP. |
+| `DISTRO` | Distribution base (e.g. `poky`, `edgegateway`). |
+| `BB_ENV_EXTRAWHITE` | Allows custom variables to be passed to BitBake. |
+| `SSTATE_DIR` and `DL_DIR` | Shared directories to speed up builds. |
 
-## Práticas recomendadas
-- Versionar `conf/notebook/*.conf` (TEMPLATECONF) para garantir builds reproduzíveis.
-- Usar `devtool` para iterar em receitas locais antes de promover para `meta-edgegateway`.
-- Documentar novas receitas/overlays em `docs/architecture/` e criar testes pTest quando aplicável.
+## Recommended practices
+- Version `conf/notebook/*.conf` (TEMPLATECONF) to ensure reproducible builds.
+- Use `devtool` to iterate on local recipes before promoting them to `meta-edgegateway`.
+- Document new recipes/overlays in `docs/architecture/` and create pTest tests when applicable.
 
-## Próximas evoluções
-- Adicionar receitas para contratos inteligentes/CLIs.
-- Integrar testes automatizados (pTest) cobrindo drivers, inferência e sincronização blockchain.
-- Criar camadas auxiliares (`meta-edgegateway-security`, `meta-edgegateway-observability`) conforme a base crescer.
+## Next evolutions
+- Add recipes for smart contracts/CLIs.
+- Integrate automated tests (pTest) covering drivers, inference and blockchain synchronisation.
+- Create auxiliary layers (`meta-edgegateway-security`, `meta-edgegateway-observability`) as the base grows.
 
-> Última revisão: 2025-11-18
-
+> Last reviewed: 2025-11-18
