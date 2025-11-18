@@ -3,10 +3,10 @@ set -euo pipefail
 
 # SPDX-License-Identifier: Apache-2.0
 #
-# Bootstrap script for initializing the Yocto build environment for the
-# Edge Gateway project. It aligns with as recomendações do EdgeGateway_Paper.pdf,
-# preparando um diretório de build dedicado e orientando a inclusão da camada
-# meta-edgegateway.
+# Bootstrap script for initialising the Yocto build environment for the
+# Edge Gateway project. It aligns with the recommendations from EdgeGateway_Paper.pdf,
+# preparing a dedicated build directory and guiding inclusion of the
+# meta-edgegateway layer.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 POKY_DIR="${REPO_ROOT}/yocto/poky"
@@ -22,8 +22,8 @@ source "${POKY_DIR}/oe-init-build-env" "${BUILD_DIR}"
 
 cat <<"MSG"
 
-Yocto environment ready. Next steps sugeridos pelo paper:
-  - Atualize conf/bblayers.conf para incluir meta-edgegateway e camadas BSP.
-  - Configure conf/local.conf com opções de segurança (TPM, criptografia) e pacotes de IA.
-  - Execute: bitbake edgegateway-image
+Yocto environment ready. Next steps suggested by the paper:
+  - Update conf/bblayers.conf to include meta-edgegateway and BSP layers.
+  - Configure conf/local.conf with security options (TPM, encryption) and AI packages.
+  - Run: bitbake edgegateway-image
 MSG

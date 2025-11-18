@@ -1,73 +1,73 @@
-# Edge Gateway para IA Pessoal baseada em Blockchain
+# Edge Gateway for Personal AI based on Blockchain
 
-Base de conhecimento e código do Edge Gateway descrito no paper `EdgeGateway_Paper.pdf`. O objetivo é conectar sensores locais, pipelines de IA embarcada e um Digital Twin protegido por blockchain, mantendo soberania de dados, inferência de baixa latência e governança auditável.
+Knowledge base and code for the Edge Gateway described in `EdgeGateway_Paper.pdf`. The goal is to connect local sensors, embedded AI pipelines and a blockchain-protected Digital Twin while preserving data sovereignty, low-latency inference and auditable governance.
 
-## Visão geral rápida
-- **Stack principal**: Yocto Project + containers OCI, pipelines de IA embarcada e agentes blockchain/DIDComm.
-- **Documentação**: modelos arquiteturais em `docs/`, resumo do paper e planos de marcos.
-- **Serviços**: protótipo do agente DIDComm em `services/didcomm-agent/`.
-- **Infra**: scripts e tarefas de VS Code para preparar o ambiente de build.
+## Quick overview
+- **Primary stack**: Yocto Project + OCI containers, embedded AI pipelines and blockchain/DIDComm agents.
+- **Documentation**: architectural models in `docs/`, a summary of the paper and milestone plans.
+- **Services**: DIDComm agent prototype in `services/didcomm-agent/`.
+- **Infrastructure**: scripts and VS Code tasks to prepare the build environment.
 
-## Como começar
-1. **Clonar e abrir no VS Code** – as extensões sugeridas estão em `.vscode/extensions.json`.
-2. **Adicionar submódulos Yocto/BSP**
+## Getting started
+1. **Clone and open in VS Code** – suggested extensions are in `.vscode/extensions.json`.
+2. **Add Yocto/BSP submodules**
    ```bash
    git submodule add git://git.yoctoproject.org/poky yocto/poky
    git submodule update --init --recursive
    ```
-3. **Inicializar ambiente** – rode `source scripts/setup-env.sh` (ou a task `setup environment` do VS Code).
-4. **Construir imagem de referência** – execute `bitbake edgegateway-image` dentro do ambiente.
-5. **Documentar decisões** – atualize os arquivos em `docs/` conforme as escolhas de arquitetura e hardware evoluírem.
+3. **Initialise the environment** – run `source scripts/setup-env.sh` (or the `setup environment` VS Code task).
+4. **Build the reference image** – run `bitbake edgegateway-image` inside the environment.
+5. **Document decisions** – keep the files in `docs/` updated as architectural and hardware choices evolve.
 
-## Estrutura do repositório
+## Repository structure
 ```text
-.vscode/                     Definições de tarefas, lint e extensões recomendadas
-docs/                        Bases de arquitetura, pesquisa e roadmap
-  architecture/              Arquitetura de sistema, fluxos e DIDComm
-  paper/                     Resumo navegável do EdgeGateway_Paper.pdf
-  research/                  Estudos complementares sobre IA pessoal e blockchain
-  roadmaps/                  Marcos técnicos e backlog inicial
-scripts/                     Scripts utilitários (ex.: setup-env.sh)
+.vscode/                     Task definitions, linting and recommended extensions
+docs/                        Architecture foundations, research and roadmap
+  architecture/              System architecture, flows and DIDComm
+  paper/                     Navigable summary of EdgeGateway_Paper.pdf
+  research/                  Complementary studies on personal AI and blockchain
+  roadmaps/                  Technical milestones and initial backlog
+scripts/                     Utility scripts (e.g. setup-env.sh)
 services/
-  didcomm-agent/             Serviço FastAPI + testes para o agente DIDComm
+  didcomm-agent/             FastAPI service + tests for the DIDComm agent
 yocto/
-  README.md                  Guia rápido de camadas e receitas
-  layers/meta-edgegateway/   Receita edgegateway-image e espaço para containers
-EdgeGateway_Paper.pdf        Referência completa do projeto
-LICENSE                      Licença MIT
+  README.md                  Quick guide to layers and recipes
+  layers/meta-edgegateway/   edgegateway-image recipe and space for containers
+EdgeGateway_Paper.pdf        Complete project reference
+LICENSE                      MIT licence
 ```
 
-## Documentação recomendada
-| Tema | Onde começar | Por que importa |
+## Recommended documentation
+| Topic | Where to start | Why it matters |
 | --- | --- | --- |
-| Arquitetura de sistema | `docs/architecture/system-architecture.md` | Visão 360° dos módulos do gateway |
-| Fluxos de dados e comunicação | `docs/architecture/communication-and-dataflow.md` | Regras de QoS, protocolos e requisitos operacionais |
-| Subsistema DIDComm | `docs/architecture/didcomm-architecture.md` + `services/didcomm-agent/README.md` | Guia para o MVP de mensageria segura |
-| Resumo do paper | `docs/paper/edgegateway-paper-summary.md` | Índice rápido do PDF original |
-| Roadmap | `docs/roadmaps/milestone-plan.md` | Sequenciamento das fases do projeto |
+| System architecture | `docs/architecture/system-architecture.md` | 360° view of the gateway modules |
+| Dataflow and communication | `docs/architecture/communication-and-dataflow.md` | QoS rules, protocols and operational requirements |
+| DIDComm subsystem | `docs/architecture/didcomm-architecture.md` + `services/didcomm-agent/README.md` | Guide for the secure messaging MVP |
+| Paper summary | `docs/paper/edgegateway-paper-summary.md` | Quick index of the original PDF |
+| Roadmap | `docs/roadmaps/milestone-plan.md` | Sequencing of project phases |
 
-## Guia Yocto em 5 minutos
-1. Garanta que `yocto/poky` e camadas BSP estejam presentes.
-2. Use o script `scripts/setup-env.sh` para exportar variáveis do BitBake.
-3. Certifique-se de que `yocto/layers/meta-edgegateway/conf/layer.conf` esteja habilitado no `bblayers.conf`.
-4. Ajuste `yocto/layers/meta-edgegateway/recipes-core/images/edgegateway-image.bb` adicionando pacotes (containers, MQTT, agentes blockchain, ferramentas de IA e observabilidade).
-5. Adicione receitas específicas em `recipes-containers/` e `recipes-security/` para refletir os requisitos do paper.
+## Yocto guide in 5 minutes
+1. Ensure `yocto/poky` and BSP layers are present.
+2. Use the `scripts/setup-env.sh` script to export BitBake variables.
+3. Ensure `yocto/layers/meta-edgegateway/conf/layer.conf` is enabled in `bblayers.conf`.
+4. Adjust `yocto/layers/meta-edgegateway/recipes-core/images/edgegateway-image.bb` by adding packages (containers, MQTT, blockchain agents, AI tools and observability).
+5. Add specific recipes in `recipes-containers/` and `recipes-security/` to reflect the paper requirements.
 
-Detalhes extras estão em `yocto/README.md` e devem ser expandidos conforme as customizações aumentarem.
+Further details are in `yocto/README.md` and should be expanded as customisations grow.
 
-## Serviço DIDComm
-- Código e testes em `services/didcomm-agent/`.
-- Stack: FastAPI + libsodium (X25519 + ChaCha20-Poly1305), com scripts de exemplo (`examples/demo_exchange.py`).
-- Rode `python -m pytest` para testes locais e `docker compose up --build` para a API containerizada.
-- A arquitetura conceitual está alinhada a `docs/architecture/didcomm-architecture.md`.
+## DIDComm service
+- Code and tests in `services/didcomm-agent/`.
+- Stack: FastAPI + libsodium (X25519 + ChaCha20-Poly1305), with example scripts (`examples/demo_exchange.py`).
+- Run `python -m pytest` for local tests and `docker compose up --build` for the containerised API.
+- The conceptual architecture aligns with `docs/architecture/didcomm-architecture.md`.
 
-## Roadmap e próximos passos
-1. **Fase 0** – definir hardware-alvo, BSPs e requisitos de segurança/compliance.
-2. **Fase 1** – estabilizar a camada `meta-edgegateway`, broker MQTT e agentes blockchain.
-3. **Fase 2** – observabilidade, governança de dados e automação OTA.
-4. **Fase 3** – pilotos com dispositivos reais e preparação para auditorias.
+## Roadmap and next steps
+1. **Phase 0** – define target hardware, BSPs and security/compliance requirements.
+2. **Phase 1** – stabilise the `meta-edgegateway` layer, MQTT broker and blockchain agents.
+3. **Phase 2** – observability, data governance and OTA automation.
+4. **Phase 3** – pilots with real devices and audit readiness.
 
-Atualize `docs/roadmaps/milestone-plan.md` e os diagramas em `docs/architecture/` à medida que novas decisões forem tomadas (hardware, modelos de IA, contratos inteligentes etc.).
+Update `docs/roadmaps/milestone-plan.md` and the diagrams in `docs/architecture/` as new decisions are made (hardware, AI models, smart contracts, etc.).
 
-## Licença
-Distribuído sob a licença MIT – consulte `LICENSE` para detalhes.
+## Licence
+Distributed under the MIT licence – see `LICENSE` for details.
