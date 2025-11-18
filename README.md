@@ -1,6 +1,6 @@
 # Edge Gateway for Personal AI based on Blockchain
 
-Knowledge base and code for the Edge Gateway described in `EdgeGateway_Paper.pdf`. The aim is to connect local sensors, embedded AI pipelines and a blockchain-protected Digital Twin while preserving data sovereignty, low-latency inference and auditable governance.
+Knowledge base and code for the Edge Gateway described in `EdgeGateway_Paper.pdf`. The goal is to connect local sensors, embedded AI pipelines and a blockchain-protected Digital Twin while preserving data sovereignty, low-latency inference and auditable governance.
 
 ## Quick overview
 - **Primary stack**: Yocto Project + OCI containers, embedded AI pipelines and blockchain/DIDComm agents.

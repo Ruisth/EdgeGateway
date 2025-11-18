@@ -12,8 +12,8 @@ Reference map to quickly access sections of `EdgeGateway_Paper.pdf`.
 - Roadmap and future work – pp. 22-23.
 
 ## How to use this summary
-- Treat it as a navigable table of contents when consulting the PDF.
-- Note errata or amendments here whenever sections change.
-- Link decisions in `docs/adr/` to the corresponding pages in the PDF for quick traceability.
+- Use it as a table of contents when navigating the PDF.
+- Mirror errata or updates here when sections evolve.
+- Link decisions in `docs/adr/` to the corresponding pages in the PDF.
 
 > Last reviewed: 2025-11-18
