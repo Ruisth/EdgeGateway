@@ -1,29 +1,48 @@
-# Plano de marcos para o Edge Gateway
+# Plano de Marcos para o Edge Gateway
 
-O plano abaixo deriva das fases sugeridas no *EdgeGateway_Paper.pdf* e orienta o backlog inicial.
+Derivado das fases do `EdgeGateway_Paper.pdf` e expandido para orientar planejamento tático. Atualize sempre que datas ou critérios mudarem.
 
-## Fase 0 – Preparação
-- Selecionar hardware-alvo, definir BSP e validar suporte a TPM/aceleradores.
-- Configurar infraestrutura de CI/CD e repositórios privados de containers.
-- Formalizar requisitos de segurança, privacidade e compliance citados no paper.
+## Visão resumida
+| Fase | Período sugerido | Responsável primário | Critério de saída |
+| --- | --- | --- | --- |
+| Fase 0 – Preparação | Mês 1 | Equipe de Plataforma | Hardware escolhido, BSP avaliado, requisitos de segurança/compliance aprovados. |
+| Fase 1 – Base de sistema | Meses 2-3 | Equipe Yocto/Infra | Build do `edgegateway-image` reproduzível + testes de smoke. |
+| Fase 2 – Observabilidade e governança | Meses 4-5 | Equipe DevSecOps | Stack de observabilidade ativa e políticas automatizadas. |
+| Fase 3 – Pilotos e integração | Meses 6-7 | Equipe de Produto/Field | Pilotos com dispositivos reais e documentação para auditorias. |
 
-## Fase 1 – Base de sistema
-- Montar ambiente Yocto com camada `meta-edgegateway` e BSP escolhido.
-- Habilitar containers, broker MQTT e agentes de sincronização blockchain.
-- Criar pipelines de teste para inferência local e validação de contratos inteligentes.
+## Detalhamento
+### Fase 0 – Preparação
+- Selecionar hardware (SoC, memória, conectividade) e validar suporte a TPM/aceleradores.
+- Configurar CI/CD mínimo (lint + build de containers) e repositórios privados.
+- Formalizar requisitos de segurança, privacidade e compliance (LGPD/GDPR, políticas do ledger).
 
-## Fase 2 – Observabilidade e governança
-- Implementar coleta de métricas, logs e dashboards.
-- Automatizar políticas de retenção de dados e anonimização.
-- Integrar monitoramento com alertas baseados no Digital Twin.
+**KPIs**: decisão de hardware registrada; matriz de requisitos revisada com stakeholders.
 
-## Fase 3 – Pilotos e integração completa
-- Conectar dispositivos reais e validar fluxos descritos em
-  `docs/architecture/communication-and-dataflow.md`.
-- Rodar pilotos com usuários selecionados, recolhendo feedback sobre latência e usabilidade.
-- Preparar documentação para certificações e auditorias.
+### Fase 1 – Base de sistema
+- Montar ambiente Yocto com `meta-edgegateway` + BSP.
+- Habilitar containers, broker MQTT, agentes blockchain e DIDComm MVP.
+- Criar pipelines de teste (unitários e integração) para inferência local e contratos inteligentes.
+
+**KPIs**: build diário estável, cobertura mínima 70% nos testes do agente DIDComm, documentação atualizada.
+
+### Fase 2 – Observabilidade e governança
+- Instrumentar métricas, logs e dashboards (Prometheus, Grafana, Loki/Fluent Bit).
+- Automatizar políticas de retenção e anonimização baseadas no ledger.
+- Integrar monitoramento com alertas vinculados ao Digital Twin.
+
+**KPIs**: tempo médio de detecção < 5 min, plano de resposta documentado, testes de auditoria aprovados.
+
+### Fase 3 – Pilotos e integração completa
+- Conectar dispositivos reais seguindo `communication-and-dataflow.md`.
+- Rodar pilotos com usuários selecionados e coletar feedback (latência, UX, confiabilidade).
+- Preparar documentação para certificações/auditorias e ajustar contratos inteligentes conforme feedback.
+
+**KPIs**: >= 2 pilotos concluídos, SLA de latência cumprido, relatório de auditoria assinado.
 
 ## Próximos passos
-- Refinar backlog com tarefas específicas do hardware escolhido.
-- Adicionar indicadores de sucesso (KPIs) para cada marco.
-- Atualizar este plano conforme decisões de arquitetura evoluírem.
+1. Atribuir responsáveis nomeados e datas reais para cada marco.
+2. Criar issues/épicos correspondentes no tracker do projeto.
+3. Revisar este plano mensalmente ou quando ocorrer mudança relevante de escopo.
+
+> Última revisão: 2025-11-18
+

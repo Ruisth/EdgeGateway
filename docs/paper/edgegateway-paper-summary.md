@@ -1,54 +1,48 @@
 # Resumo do paper "EdgeGateway_Paper.pdf"
 
-Este documento destaca os pontos essenciais extraídos do paper *EdgeGateway_Paper.pdf*, que
-apresenta uma arquitetura de Edge Gateway para suportar um ecossistema de IA pessoal
-sincronizado com blockchain.
+Síntese dos principais pontos do documento original. Use-o como índice rápido antes de consultar o PDF completo.
 
-## Visão geral
-- O gateway é responsável por interligar sensores e atuadores locais com serviços de IA na
-  nuvem e com um Digital Twin residente na blockchain.
-- A solução enfatiza confiabilidade, privacidade e governança de dados, combinando edge
-  computing, contratos inteligentes e sincronização contínua do gêmeo digital.
-- O documento descreve um ciclo de vida completo que vai desde a aquisição de dados, passando
-  por inferência local, até a persistência de estados e eventos no ledger distribuído.
+## 1. Visão geral
+- Gateway conecta sensores/atuadores locais, pipelines de IA na nuvem e um Digital Twin na blockchain.
+- Foco em confiabilidade, privacidade e governança de dados.
+- Ciclo de vida: aquisição → inferência local → sincronização → observabilidade/auditoria.
 
-## Componentes principais
-1. **Camada de Dispositivos IoT** – sensores, atuadores e wearables fornecem eventos em tempo
-   real que são normalizados pelo gateway.
-2. **Edge Gateway** – executa um sistema Linux embarcado com containers para microsserviços,
-   pipeline de IA, broker de mensagens (MQTT), armazenamento de curto prazo e agentes de
-   sincronização com a blockchain.
-3. **Digital Twin & Blockchain** – cada identidade digital mantém metadados, políticas de
-   acesso e histórico de interações em contratos inteligentes, permitindo auditoria e
-   rastreabilidade.
-4. **Serviços de Nuvem** – pipelines de treinamento, dashboards e serviços de IA pesada são
-   acionados quando necessário, recebendo dados do gateway por canais seguros.
+## 2. Componentes principais
+| Camada | Destaques | Cross-refs |
+| --- | --- | --- |
+| Dispositivos IoT | Sensores industriais, residenciais e wearables. | `docs/architecture/communication-and-dataflow.md` |
+| Edge Gateway | Containers, broker MQTT, storage efêmero, agentes blockchain e IA embarcada. | `yocto/README.md`, `README.md` |
+| Digital Twin/Blockchain | Contratos inteligentes com identidades, políticas e trilhas de auditoria. | `docs/architecture/didcomm-architecture.md` |
+| Serviços de Nuvem | Treinamento pesado, dashboards, data lakes privados/públicos. | `docs/research/blockchain-personal-ai-summary.md` |
 
-## Requisitos de arquitetura
-- **Segurança ponta a ponta** com módulos TPM, autenticação baseada em certificados e
-  criptografia TLS/DTLS.
-- **Alta disponibilidade** via containers redundantes, monitoramento e atualizações OTA.
-- **Observabilidade** com coleta de métricas, logs estruturados e rastreamento distribuído.
-- **Gerenciamento de dados** contemplando retenção local, replicação seletiva e anonimização
-  antes do envio à blockchain ou nuvem.
+## 3. Requisitos de arquitetura
+- Segurança ponta a ponta (TPM, TLS/DTLS, DIDComm, controle de acesso por contratos).
+- Alta disponibilidade (containers redundantes, monitoramento, atualizações OTA).
+- Observabilidade com métricas, logs e tracing.
+- Governança de dados (retenção local, replicação seletiva, anonimização pré-envio).
 
-## Pipeline funcional
-1. **Aquisição**: drivers e agentes normalizam dados vindos de múltiplos protocolos industriais
-   e de consumo.
-2. **Processamento local**: modelos de IA embarcados realizam inferência para decisões em tempo
-   real, reduzindo latência e custo de comunicação.
-3. **Orquestração**: um barramento de eventos e um service mesh leve coordenam microsserviços e
-   executam políticas derivadas de contratos inteligentes.
-4. **Sincronização**: somente deltas relevantes são enviados ao Digital Twin na blockchain para
-   garantir consistência com baixo custo.
-5. **Supervisão**: dashboards e APIs fornecem visibilidade do estado do gateway, integrando-se a
-   sistemas de gestão externos.
+## 4. Pipeline funcional
+1. **Aquisição** – drivers normalizam protocolos heterogêneos.
+2. **Processamento local** – inferência embarcada reduz latência e custo de tráfego.
+3. **Orquestração** – barramento de eventos + service mesh aplicam políticas.
+4. **Sincronização** – apenas deltas relevantes atingem o Digital Twin.
+5. **Supervisão** – dashboards/APIs expõem estado e integração com sistemas externos.
 
-## Implicações para o desenvolvimento
-- A plataforma Yocto deve agregar camadas BSP específicas do hardware-alvo e incluir suporte a
-  containers, brokers MQTT, agentes blockchain e toolchains de IA.
-- Estratégias de DevSecOps englobam integração com registries privados, varredura de imagens e
-  testes de conformidade com políticas do ledger.
-- A documentação recomenda manter trilhas claras de versionamento e políticas de backup para
-  dados sensíveis gerados no edge.
+## 5. Implicações para o desenvolvimento
+- Yocto deve agregar BSPs do hardware escolhido, containers, brokers MQTT, agentes blockchain e toolchains de IA.
+- DevSecOps: integração com registries privados, varredura de imagens, testes de conformidade com políticas do ledger.
+- Versionamento rigoroso e backup/restore para dados sensíveis gerados no edge.
+
+## 6. Conteúdos recomendados no PDF
+| Seção do PDF | Descrição | Onde aplicar |
+| --- | --- | --- |
+| Cap. 2 | Requisitos funcionais e não funcionais | Atualizar ADMs/ADRs em `docs/architecture/`. |
+| Cap. 3 | Arquitetura lógica e física | Modelar diagramas no repositório. |
+| Cap. 4 | Estratégias de IA e pipelines | Expandir `docs/research/`. |
+| Cap. 5 | Blockchain e governança | Alimentar contratos e políticas do DIDComm. |
+| Apêndice | Métricas e SLAs | Atualizar tabelas de requisitos. |
+
+> Para dúvidas específicas, registre uma issue com a referência da página do PDF.
+
+> Última revisão: 2025-11-18
 
