@@ -1,22 +1,22 @@
-# Arquitetura de Sistema do Edge Gateway
+# Edge Gateway System Architecture
 
-Este documento consolida a visão macro, os componentes e os requisitos não-funcionais do Edge Gateway descrito no paper `EdgeGateway_Paper.pdf`. Ele serve como referência para decisões de engenharia e deve ser mantido alinhado aos experimentos conduzidos no laboratório e em campo.
+This document consolidates the macro view, components and non-functional requirements of the Edge Gateway described in `EdgeGateway_Paper.pdf`. It serves as a reference for engineering decisions and must stay aligned with experiments conducted in the lab and in the field.
 
-## Visão macro
-1. **Dispositivos IoT** – sensores industriais e residenciais, atuadores, wearables e controladores legados.
-2. **Edge Gateway** – plataforma Linux (Yocto) com suporte a containers OCI, aceleradores de IA e TPM.
-3. **Digital Twin + Blockchain** – contratos inteligentes que guardam identidades, políticas e auditoria.
-4. **Nuvem/Laboratório** – pipelines de IA pesada, dashboards e integrações corporativas.
+## Macro view
+1. **IoT devices** – industrial and residential sensors, actuators, wearables and legacy controllers.
+2. **Edge Gateway** – Linux platform (Yocto) with support for OCI containers, AI accelerators and TPM.
+3. **Digital Twin + Blockchain** – smart contracts that store identities, policies and audit data.
+4. **Cloud/Laboratory** – heavy AI pipelines, dashboards and corporate integrations.
 
 ```
 +-------------+        +-----------------+        +-------------------+
-| Dispositivos|<-----> | Edge Gateway    |<-----> | Digital Twin /    |
-| IoT         |        | (Yocto + OCI)   |        | Blockchain + Nuvem|
+| IoT         |<-----> | Edge Gateway    |<-----> | Digital Twin /    |
+| devices     |        | (Yocto + OCI)   |        | Blockchain + Cloud|
 +-------------+        +-----------------+        +-------------------+
 ```
 
-## Módulos principais
-| Módulo | Responsabilidades | Observações |
+## Core modules
+| Module | Responsibilities | Notes |
 | --- | --- | --- |
 | Gestão de conectividade | Drivers, adaptadores industriais/residenciais, roteamento seguro | Integrar protocolos Modbus, OPC-UA, BLE, Thread, Wi-Fi 6/6E e 5G/LTE. |
 | Barramento de eventos (MQTT) | Eclipse Mosquitto 2.0 com TLS (porta 8883), ACL por dispositivo | QoS 1 para telemetria a 1Hz, tópicos `egw/<uuid>/telemetry`. Ver `docs/architecture/mqtt-architecture.md`. |

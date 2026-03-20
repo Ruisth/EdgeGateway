@@ -1,6 +1,6 @@
-# Plano de Marcos para o Edge Gateway
+# Milestone plan for the Edge Gateway
 
-Derivado das fases do `EdgeGateway_Paper.pdf` e expandido para orientar planejamento tático. Atualize sempre que datas ou critérios mudarem.
+High-level phases to align the Yocto image, DIDComm agent and blockchain integration.
 
 ## Visão resumida
 | Fase | Período sugerido | Critério de saída |
