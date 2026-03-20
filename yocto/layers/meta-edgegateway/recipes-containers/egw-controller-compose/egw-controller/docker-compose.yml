@@ -1,0 +1,18 @@
+services:
+  egw-controller:
+    image: edgegateway/egw-controller:dev
+    container_name: egw-controller
+    ports:
+      - "8090:8090"
+    environment:
+      - DITTO_URL=http://nginx:8080
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=8883
+      - IPFS_API_URL=http://ipfs:5001
+      - ACAPY_CONSORTIUM_URL=http://aca-py-consortium:8021
+      - ACAPY_OEM_URL=http://aca-py-oem:8031
+      - ACAPY_EGW_URL=http://aca-py-egw:8061
+      - FABRIC_PEER_URL=peer0.consortium.c2dta.org:7051
+      - FABRIC_CHANNEL=c2dta-channel
+    restart: unless-stopped
+    network_mode: host

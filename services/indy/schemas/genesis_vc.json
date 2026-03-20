@@ -1,0 +1,14 @@
+{
+  "schema_name": "GenesisCredential",
+  "schema_version": "1.0",
+  "description": "Verifiable Credential de proveniencia de um dispositivo. Emitida pelo OEM (1@O) ao dispositivo (1@egw ou 1@sd) durante o auto-registo. Prova que o dispositivo foi fabricado por um OEM inscrito. Ver paper Seccao 3.2.3 — Device Self-Registration.",
+  "attributes": [
+    "device_uuid",
+    "model_id",
+    "manufacturer_did",
+    "manufacture_date",
+    "firmware_version",
+    "wot_td_hash",
+    "serial_number"
+  ]
+}

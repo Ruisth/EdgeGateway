@@ -1,0 +1,31 @@
+# =============================================================================
+# Hyperledger Indy — Identity Ledger C2DTA (von-network)
+# =============================================================================
+# Pool de 4 nos Indy local para desenvolvimento.
+# Inclui web UI para inspecao do ledger.
+
+services:
+  indy-pool:
+    image: ghcr.io/bcgov/von-network-base:latest
+    container_name: c2dta-indy-pool
+    ports:
+      - "9000:9000"    # Web UI
+      - "9701:9701"    # Node 1
+      - "9702:9702"    # Node 2
+      - "9703:9703"    # Node 3
+      - "9704:9704"    # Node 4
+    environment:
+      - GENESIS_URL=
+      - LEDGER_SEED=C2DTA000000000000000000Steward1
+      - LOG_LEVEL=INFO
+    volumes:
+      - indy-data:/home/indy/ledger
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/status"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  indy-data:

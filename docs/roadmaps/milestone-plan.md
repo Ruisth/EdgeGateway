@@ -2,25 +2,71 @@
 
 High-level phases to align the Yocto image, DIDComm agent and blockchain integration.
 
-## Phase 0 – Foundation
-- Select target hardware (TPM, AI accelerator, connectivity matrix).
-- Pull BSP layers and validate boot + secure boot chain.
-- Define compliance requirements (GDPR/LGPD) and logging/audit scope.
+## Visão resumida
+| Fase | Período sugerido | Critério de saída |
+| --- | --- | --- |
+| Fase 1 — Infraestrutura MQTT + Simulador SD | Mês 1 | Mosquitto TLS operacional, simulador publicando a 1Hz |
+| Fase 2 — Digital Twin (Ditto + WoT) | Mês 1-2 | Ditto a receber telemetria via MQTT, WoT TD definido |
+| Fase 3 — Blockchain (Fabric + Chaincodes) | Mês 1-2 | Rede Fabric operacional, chaincodes deployados |
+| Fase 4 — Identidade (Indy + ACA-Py) | Mês 1-2 | Pool Indy operacional, 5 agentes ACA-Py ativos |
+| Fase 5 — IPFS | Mês 2 | Kubo operacional, add/pin/cat funcional |
+| Fase 6 — EGW Controller | Mês 3 | Orquestrador com 8 UCs, 24 testes a passar |
+| Fase 7 — Integração, CI/CD, Documentação | Mês 3-4 | Docker Compose raiz, CI verde, docs completos |
 
-## Phase 1 – Core platform
-- Stabilise `meta-edgegateway` with container runtime, MQTT broker and OTA base.
-- Package initial blockchain/DIDComm agents and expose health endpoints.
-- Set up CI for BitBake linting and container image scans.
+## Detalhamento
 
-## Phase 2 – Observability and governance
-- Add Prometheus exporters, log pipeline and tracing for core services.
-- Implement policy engine linked to smart contracts for data access and OTA.
-- Create rollback procedures and chaos tests for connectivity/interference.
+### Fase 1 — Infraestrutura MQTT + Simulador SD
+- **1A. Eclipse Mosquitto**: Broker MQTT com TLS (porta 8883), ACL por dispositivo, persistência ativa
+- **1B. SD Simulator**: Simulador Python de smartwatch com heartbeat (random walk), geolocation (drift gaussiano), timestamp a 1Hz via paho-mqtt
 
-## Phase 3 – Pilot and audit readiness
-- Deploy to lab devices; measure inference latency and broker availability.
-- Run security assessments (TLS posture, key management, firmware integrity).
-- Prepare audit artefacts and documentation for regulators/stakeholders.
+**Estado**: Completo. Servicos em `services/mosquitto/` e `services/smart-device-simulator/`.
 
-> Keep updating this plan alongside `docs/architecture/` diagrams and ADRs.
-> Last reviewed: 2025-11-18
+### Fase 2 — Digital Twin (Eclipse Ditto + WoT)
+- **2A. Eclipse Ditto 3.5.6**: Stack completa (MongoDB + 5 servicos + nginx), conectividade MQTT com payload mapping JavaScript
+- **2B. WoT Thing Description**: W3C WoT TD v1.1 para smartwatch (heartbeat, geolocation, timestamp)
+
+**Estado**: Completo. Servicos em `services/ditto/`.
+
+### Fase 3 — Blockchain (Hyperledger Fabric + Chaincodes)
+- Rede Fabric 2.5 (1 orderer, 2 orgs, CouchDB, 2 CAs)
+- Chaincode `device-lifecycle` (Go): 6 estados, todas as transicoes
+- Chaincode `dataset-tracking` (Go): registo e transferencia de datasets IPFS
+
+**Estado**: Completo. Servicos em `services/fabric/`.
+
+### Fase 4 — Identidade (Hyperledger Indy + ACA-Py)
+- Pool Indy (von-network, 4 nos) com Web UI
+- 3 schemas VC: Enrollment, Genesis, Ownership
+- 5 agentes ACA-Py: Consortium, OEM, Consumer A, EGW, SD
+- Plugins C2DTA com goal codes para automacao DIDComm
+
+**Estado**: Completo. Servicos em `services/indy/` e `services/aca-py/`.
+
+### Fase 5 — IPFS (Kubo)
+- No IPFS local para snapshots do DT
+- CIDs ancorados no Fabric via dataset-tracking
+
+**Estado**: Completo. Servico em `services/ipfs/`.
+
+### Fase 6 — EGW Controller
+- FastAPI com endpoints para 8 use cases
+- Clientes para Fabric, Ditto, ACA-Py, IPFS
+- Transaction Manager (key-pair table)
+- 24 testes (unitarios + API)
+
+**Estado**: Completo. Servico em `services/egw-controller/`.
+
+### Fase 7 — Integração, CI/CD e Documentação
+- **7A**: Docker Compose raiz (~20 containers), GitHub Actions (CI + Yocto)
+- **7B**: 7 documentos de arquitetura (MQTT, Ditto, Fabric, Indy, IPFS, EGW Controller, UC flows)
+- **7C**: Atualizacao de README, system-architecture, milestone-plan, .gitignore, edgegateway-image.bb, tasks.json
+
+**Estado**: Completo.
+
+## Próximos Passos
+1. Conectar dispositivos reais e validar fluxo end-to-end
+2. Instrumentar observabilidade (Prometheus, Grafana)
+3. Preparar pilotos com utilizadores selecionados
+4. Auditorias de seguranca e compliance
+
+> Última revisão: 2026-03-20

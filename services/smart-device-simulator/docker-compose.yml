@@ -1,0 +1,18 @@
+services:
+  smart-device-simulator:
+    build: .
+    image: edgegateway/smart-device-simulator:dev
+    container_name: c2dta-sd-simulator
+    environment:
+      - SD_UUID=${SD_UUID:-}
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=8883
+      - MQTT_CA_CERT=/certs/ca.crt
+      - MQTT_CLIENT_CERT=/certs/sd.crt
+      - MQTT_CLIENT_KEY=/certs/sd.key
+      - SD_PUBLISH_INTERVAL_MS=1000
+    volumes:
+      - ../mosquitto/certs:/certs:ro
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
