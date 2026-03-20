@@ -7,7 +7,7 @@
 services:
   # ---------- 1@C — Agente do Consorcio ----------
   aca-py-consortium:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-consortium
     ports:
       - "8020:8020"    # HTTP endpoint
@@ -27,13 +27,14 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8020
         --outbound-transport http
     restart: unless-stopped
 
   # ---------- 1@O — Agente do OEM ----------
   aca-py-oem:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-oem
     ports:
       - "8030:8030"
@@ -53,13 +54,14 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8030
         --outbound-transport http
     restart: unless-stopped
 
   # ---------- 1@A — Agente do Consumidor A ----------
   aca-py-consumer-a:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-consumer-a
     ports:
       - "8040:8040"
@@ -79,13 +81,14 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8040
         --outbound-transport http
     restart: unless-stopped
 
   # ---------- 1@egw — Agente do Edge Gateway ----------
   aca-py-egw:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-egw
     ports:
       - "8060:8060"
@@ -105,13 +108,14 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8060
         --outbound-transport http
     restart: unless-stopped
 
   # ---------- 1@sd — Agente do Smart Device ----------
   aca-py-sd:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-sd
     ports:
       - "8070:8070"
@@ -131,6 +135,7 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8070
         --outbound-transport http
     restart: unless-stopped

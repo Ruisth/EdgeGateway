@@ -50,8 +50,8 @@ services:
       - MQTT_BROKER_HOST=mosquitto
       - MQTT_BROKER_PORT=8883
       - MQTT_CA_CERT=/certs/ca.crt
-      - MQTT_CLIENT_CERT=/certs/client.crt
-      - MQTT_CLIENT_KEY=/certs/client.key
+      - MQTT_CLIENT_CERT=/certs/edgegateway.crt
+      - MQTT_CLIENT_KEY=/certs/edgegateway.key
     volumes:
       - ./services/mosquitto/certs:/certs:ro
     depends_on:
@@ -83,52 +83,68 @@ services:
     container_name: c2dta-ditto-policies
     environment:
       - MONGO_DB_URI=mongodb://mongodb:27017/policies
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
     depends_on:
       mongodb:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - c2dta-net
+      c2dta-net:
+        aliases:
+          - ditto-cluster
 
   ditto-things:
     image: eclipse/ditto-things:3.5.6
     container_name: c2dta-ditto-things
     environment:
       - MONGO_DB_URI=mongodb://mongodb:27017/things
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
     depends_on:
       mongodb:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - c2dta-net
+      c2dta-net:
+        aliases:
+          - ditto-cluster
 
   ditto-things-search:
     image: eclipse/ditto-things-search:3.5.6
     container_name: c2dta-ditto-things-search
     environment:
       - MONGO_DB_URI=mongodb://mongodb:27017/things-search
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
     depends_on:
       mongodb:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - c2dta-net
+      c2dta-net:
+        aliases:
+          - ditto-cluster
 
   ditto-connectivity:
     image: eclipse/ditto-connectivity:3.5.6
     container_name: c2dta-ditto-connectivity
     environment:
       - MONGO_DB_URI=mongodb://mongodb:27017/connectivity
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
     depends_on:
       mongodb:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - c2dta-net
+      c2dta-net:
+        aliases:
+          - ditto-cluster
 
   ditto-gateway:
     image: eclipse/ditto-gateway:3.5.6
@@ -136,6 +152,8 @@ services:
     environment:
       - ENABLE_DUMMY_AUTH=true
       - DEVOPS_PASSWORD=c2dta-devops
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
     depends_on:
       - ditto-policies
@@ -144,7 +162,9 @@ services:
       - ditto-connectivity
     restart: unless-stopped
     networks:
-      - c2dta-net
+      c2dta-net:
+        aliases:
+          - ditto-cluster
 
   nginx:
     image: nginx:1.27-alpine
@@ -158,7 +178,7 @@ services:
       - ditto-gateway
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/status"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/status"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -360,18 +380,26 @@ services:
       - "9702:9702"
       - "9703:9703"
       - "9704:9704"
+      - "9705:9705"
+      - "9706:9706"
+      - "9707:9707"
+      - "9708:9708"
     environment:
+      - IP=indy-pool
       - GENESIS_URL=
-      - LEDGER_SEED=C2DTA000000000000000000Steward1
+      - LEDGER_SEED=000000000000000000000000Steward1
       - LOG_LEVEL=INFO
+      - PORT=9000
     volumes:
       - indy-data:/home/indy/ledger
+    command: bash -c './scripts/start_nodes.sh & sleep 10 && ./scripts/start_webserver.sh'
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/status"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     networks:
       - c2dta-net
 
@@ -379,7 +407,7 @@ services:
   # ACA-Py (SSI Agents)
   # ============================================================
   aca-py-consortium:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-consortium
     ports:
       - "8020:8020"
@@ -399,6 +427,7 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8020
         --outbound-transport http
     depends_on:
@@ -409,7 +438,7 @@ services:
       - c2dta-net
 
   aca-py-oem:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-oem
     ports:
       - "8030:8030"
@@ -429,6 +458,7 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8030
         --outbound-transport http
     depends_on:
@@ -439,7 +469,7 @@ services:
       - c2dta-net
 
   aca-py-consumer-a:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-consumer-a
     ports:
       - "8040:8040"
@@ -459,6 +489,7 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8040
         --outbound-transport http
     depends_on:
@@ -469,7 +500,7 @@ services:
       - c2dta-net
 
   aca-py-egw:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-egw
     ports:
       - "8060:8060"
@@ -489,6 +520,7 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8060
         --outbound-transport http
     depends_on:
@@ -499,7 +531,7 @@ services:
       - c2dta-net
 
   aca-py-sd:
-    image: ghcr.io/openwallet-foundation/acapy:py3.12-1.2.2
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
     container_name: c2dta-aca-py-sd
     ports:
       - "8070:8070"
@@ -519,6 +551,7 @@ services:
       - ACAPY_LOG_LEVEL=info
     command: >
       start
+        --auto-provision
         --inbound-transport http 0.0.0.0 8070
         --outbound-transport http
     depends_on:
@@ -581,7 +614,7 @@ services:
       ipfs:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health')"]
       interval: 15s
       timeout: 5s
       retries: 3

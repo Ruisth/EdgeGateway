@@ -2,10 +2,9 @@
 # =============================================================================
 # Inicia a rede Hyperledger Fabric C2DTA
 # =============================================================================
-# 1. Gera material criptografico (se nao existir)
-# 2. Cria o bloco genesis
-# 3. Inicia os containers
-# 4. Cria e junta peers ao canal c2dta-channel
+# 1. Gera material criptografico (cryptogen)
+# 2. Gera bloco genesis (configtxgen)
+# 3. Pode ser chamado antes de `docker compose up` na raiz
 
 set -euo pipefail
 
@@ -14,28 +13,53 @@ FABRIC_DIR="$(dirname "$SCRIPT_DIR")"
 CHANNEL_NAME="c2dta-channel"
 
 echo "======================================================"
-echo "  C2DTA — Iniciar rede Hyperledger Fabric"
+echo "  C2DTA — Gerar material criptografico Fabric"
 echo "======================================================"
 
-# 1. Iniciar containers
-echo "[1/3] A iniciar containers..."
-cd "$FABRIC_DIR"
-docker compose up -d
+# ---- 1. Gerar crypto material via cryptogen ----
+ORGS_DIR="${FABRIC_DIR}/organizations"
+if [ -d "${ORGS_DIR}/ordererOrganizations/c2dta.example.com/orderers/orderer.c2dta.example.com/msp/signcerts" ]; then
+    echo "[1/2] Material criptografico ja existe, a saltar..."
+else
+    echo "[1/2] A gerar material criptografico com cryptogen..."
 
-echo "[2/3] A aguardar que os peers arranquem..."
-sleep 5
+    # Limpar diretorio de organizacoes existente (apenas estrutura vazia)
+    rm -rf "${ORGS_DIR}"
 
-# 3. Criar canal (via osnadmin)
-echo "[3/3] A criar canal ${CHANNEL_NAME}..."
-echo "NOTA: Execute os comandos de criacao de canal manualmente ou"
-echo "      use o script deploy-chaincode.sh apos a rede estar pronta."
+    # Executar cryptogen dentro do container fabric-tools
+    docker run --rm \
+        -v "${FABRIC_DIR}/configtx:/configtx" \
+        -v "${ORGS_DIR}:/organizations" \
+        -w /configtx \
+        hyperledger/fabric-tools:2.5 \
+        cryptogen generate --config=crypto-config.yaml --output=/organizations
+
+    echo "    Material criptografico gerado em ${ORGS_DIR}"
+fi
+
+# ---- 2. Gerar bloco genesis ----
+ARTIFACTS_DIR="${FABRIC_DIR}/channel-artifacts"
+mkdir -p "${ARTIFACTS_DIR}"
+
+if [ -f "${ARTIFACTS_DIR}/${CHANNEL_NAME}.block" ]; then
+    echo "[2/2] Bloco genesis ja existe, a saltar..."
+else
+    echo "[2/2] A gerar bloco genesis com configtxgen..."
+
+    docker run --rm \
+        -v "${FABRIC_DIR}/configtx:/configtx" \
+        -v "${ORGS_DIR}:/configtx/../organizations" \
+        -v "${ARTIFACTS_DIR}:/channel-artifacts" \
+        -w /configtx \
+        -e FABRIC_CFG_PATH=/configtx \
+        hyperledger/fabric-tools:2.5 \
+        configtxgen -profile C2DTAGenesis \
+            -outputBlock /channel-artifacts/${CHANNEL_NAME}.block \
+            -channelID ${CHANNEL_NAME}
+
+    echo "    Bloco genesis gerado em ${ARTIFACTS_DIR}/${CHANNEL_NAME}.block"
+fi
+
 echo ""
-echo "Comandos de referencia:"
-echo "  # Gerar bloco genesis:"
-echo "  configtxgen -profile C2DTAGenesis -outputBlock ./channel-artifacts/${CHANNEL_NAME}.block -channelID ${CHANNEL_NAME}"
-echo ""
-echo "  # Criar canal via osnadmin:"
-echo "  osnadmin channel join --channelID ${CHANNEL_NAME} --config-block ./channel-artifacts/${CHANNEL_NAME}.block -o localhost:7053 --ca-file ..."
-echo ""
-echo "[OK] Rede Fabric C2DTA iniciada."
-docker compose ps
+echo "[OK] Material criptografico e bloco genesis prontos."
+echo "     Execute 'docker compose up -d' na raiz do projeto."
