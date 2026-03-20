@@ -1,144 +1,324 @@
-# Edge Gateway — Consumer-Controlled Digital Twin Architecture (C2DTA)
+# EdgeGateway — Consumer-Controlled Digital Twin Architecture (C2DTA)
 
-Implementacao completa da arquitetura **C2DTA** descrita no paper `EdgeGateway_Paper.pdf`. O Edge Gateway transfere o Digital Twin (DT) do smart device para o edge sob controlo do consumidor, usando blockchain dual (Hyperledger Fabric + Indy), SSI/DIDComm (ACA-Py), Eclipse Ditto, Eclipse Mosquitto e IPFS.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
+[![Go 1.21+](https://img.shields.io/badge/Go-1.21+-00ADD8.svg)](https://go.dev/)
+[![Docker](https://img.shields.io/badge/Docker-Compose%20v2-2496ED.svg)](https://docs.docker.com/compose/)
+[![CI](https://github.com/Ruisth/EdgeGateway/actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
+
+Full implementation of the **C2DTA architecture** — a consumer-controlled digital twin system that moves smart device data sovereignty from manufacturers to end users, using dual blockchain, self-sovereign identity, and edge computing.
+
+---
+
+## Paper
+
+> **Consumer-Controlled Digital Twin Architecture: How blockchain technology gives consumers control over their smart devices' digital twins and data**
+>
+> Filipe Pinto, Catarina Ferreira da Silva, Sergio Moro, Pedro Aquino
+>
+> *Blockchain: Research and Applications*, Elsevier, 2025
+> DOI: [10.1016/j.bcra.2025.100342](https://doi.org/10.1016/j.bcra.2025.100342)
+> Received: 24 January 2024 · Revised: 14 June 2025 · Accepted: 16 June 2025
+
+This repository is the reference implementation accompanying the paper above. All 8 use cases described in Section 3.2 are fully implemented and runnable via Docker Compose.
+
+---
+
+## Overview
+
+Today, when a consumer buys a smart device (e.g. a smartwatch), the manufacturer controls the device's digital twin and all sensor data in a centralised cloud. The **C2DTA** architecture reverses this:
+
+- The **Edge Gateway (EGW)** runs on the consumer's local network and hosts the device's Digital Twin at the edge.
+- **Hyperledger Fabric** anchors the full device lifecycle on an immutable ecosystem ledger.
+- **Hyperledger Indy** provides a decentralised identity ledger for DIDs and credential schemas.
+- **ACA-Py** issues and verifies Verifiable Credentials (VCs) that govern device ownership and registration.
+- **Eclipse Ditto** manages the Digital Twin with full Web of Things (WoT) compatibility.
+- **Eclipse Mosquitto** delivers real-time MQTT telemetry over TLS from the device to the twin.
+- **IPFS** stores dataset snapshots with content-addressed hashes anchored on Fabric.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Consumer Edge                                │
+│                                                                     │
+│  ┌─────────────┐    MQTT/TLS    ┌──────────────┐                   │
+│  │ Smart Device│───────────────▶│  Mosquitto   │                   │
+│  │ (Smartwatch)│                │  MQTT Broker │                   │
+│  └─────────────┘                └──────┬───────┘                   │
+│                                        │                            │
+│  ┌─────────────────────────────────────▼─────────────────────────┐ │
+│  │                    EGW Controller (FastAPI)                    │ │
+│  │          Orchestrates UC1–UC8 · REST API :8090                │ │
+│  └──────┬──────────┬──────────┬──────────┬───────────┬───────────┘ │
+│         │          │          │          │           │              │
+│  ┌──────▼──┐ ┌─────▼────┐ ┌──▼──────┐ ┌─▼──────┐ ┌─▼────────┐   │
+│  │  Ditto  │ │  ACA-Py  │ │ Fabric  │ │  Indy  │ │   IPFS   │   │
+│  │   DT    │ │ 5 agents │ │ 2 peers │ │  Pool  │ │  Kubo    │   │
+│  │  :8080  │ │ :8020-71 │ │ :7050-51│ │  :9000 │ │  :8081   │   │
+│  └─────────┘ └──────────┘ └─────────┘ └────────┘ └──────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## Quick Start
 
-```bash
-# 1. Clonar e abrir no VS Code
-git clone <repo-url> && cd EdgeGateway
-code .
+### Prerequisites
 
-# 2. Gerar certificados TLS para MQTT
+- Docker & Docker Compose v2
+- Python 3.12+
+- Go 1.21+ (for chaincode development only)
+
+### Setup
+
+```bash
+# 1. Clone the repository
+git clone <repo-url> && cd EdgeGateway
+
+# 2. Generate TLS certificates for MQTT
 cd services/mosquitto/certs && bash generate-certs.sh && cd -
 
-# 3. Lancar todos os servicos (~20 containers)
+# 3. Start all services (~20 containers)
 docker compose up -d
 
-# 4. Verificar health
+# 4. Verify the EGW Controller is healthy
 curl http://localhost:8090/health
+# Expected: {"status": "ok", "service": "egw-controller"}
 
-# 5. Executar demo do ciclo de vida completo (UC1-UC8)
+# 5. Run the full lifecycle demo (UC1–UC8)
 python services/egw-controller/examples/run_full_lifecycle.py
 ```
 
-## Estrutura do Repositorio
+---
+
+## Repository Structure
 
 ```text
-.github/workflows/           CI/CD (GitHub Actions)
-.vscode/                     Tasks, lint, extensoes
-docs/
-  architecture/              Arquitetura de sistema, MQTT, Ditto, Fabric, Indy, IPFS, EGW Controller, fluxos UC
-  paper/                     Resumo do EdgeGateway_Paper.pdf
-  roadmaps/                  Marcos tecnicos
-services/
-  mosquitto/                 MQTT Broker (Eclipse Mosquitto 2.0, TLS)
-  smart-device-simulator/    Simulador de smartwatch (1Hz heartbeat/geo/timestamp)
-  ditto/                     Digital Twin (Eclipse Ditto 3.5.6 + WoT TD)
-  fabric/                    Blockchain ecossistema (Hyperledger Fabric 2.5 + chaincodes Go)
-  indy/                      Blockchain identidade (Hyperledger Indy, von-network)
-  aca-py/                    Agentes SSI (ACA-Py 1.2.2, 5 instancias)
-  ipfs/                      Armazenamento descentralizado (IPFS Kubo 0.28)
-  egw-controller/            Orquestrador central (FastAPI, 8 use cases)
-  didcomm-agent/             Agente DIDComm MVP
-yocto/
-  layers/meta-edgegateway/   Receitas Yocto para deploy no edge
-docker-compose.yml           Orquestracao de todos os servicos
-EdgeGateway_Paper.pdf        Paper de referencia
+EdgeGateway/
+├── .github/workflows/           GitHub Actions CI/CD (ci.yml, build-yocto.yml)
+├── .vscode/                     VS Code tasks, linting, recommended extensions
+├── docs/
+│   ├── architecture/            11 detailed architecture documents
+│   ├── paper/                   Paper summary and research notes
+│   └── roadmaps/                Development milestone plan
+├── services/
+│   ├── egw-controller/          Central orchestrator (FastAPI, 8 use cases)
+│   ├── smart-device-simulator/  Smartwatch simulator (1 Hz telemetry over MQTT)
+│   ├── mosquitto/               MQTT broker (Eclipse Mosquitto 2.0, TLS)
+│   ├── ditto/                   Digital Twin platform (Eclipse Ditto 3.5.6 + WoT TD)
+│   ├── fabric/                  Ecosystem blockchain (Hyperledger Fabric 2.5, Go chaincodes)
+│   ├── indy/                    Identity blockchain (Hyperledger Indy, von-network)
+│   ├── aca-py/                  SSI agents (ACA-Py 1.2.2, 5 instances)
+│   ├── ipfs/                    Decentralised storage (IPFS Kubo 0.28)
+│   └── didcomm-agent/           DIDComm 2.0 MVP agent (FastAPI)
+├── yocto/
+│   └── layers/meta-edgegateway/ Custom Yocto layer for edge device deployment
+├── docker-compose.yml           Orchestrates all ~20 containers on network c2dta-net
+├── EdgeGateway_Paper.pdf        Reference paper (pre-print)
+└── LICENSE                      MIT
 ```
 
-## Tabela de Portas
+---
 
-| Servico | Porta | Descricao |
-|---|---|---|
-| DIDComm Agent | 8000 | API REST DIDComm MVP |
-| ACA-Py Consortium | 8020/8021 | HTTP/Admin SSI |
-| ACA-Py OEM | 8030/8031 | HTTP/Admin SSI |
-| ACA-Py Consumer A | 8040/8041 | HTTP/Admin SSI |
-| ACA-Py EGW | 8060/8061 | HTTP/Admin SSI |
-| ACA-Py SD | 8070/8071 | HTTP/Admin SSI |
-| Ditto (nginx) | 8080 | API Digital Twin |
-| IPFS Gateway | 8081 | Gateway HTTP IPFS |
-| EGW Controller | 8090 | API Orquestrador (FastAPI) |
-| Fabric Orderer | 7050 | Orderer Raft |
-| Fabric Peer (Consortium) | 7051 | Peer ConsortiumOrg |
-| Fabric CA (Consortium) | 7054 | Certificate Authority |
-| Fabric CA (OEM) | 8054 | Certificate Authority |
-| Mosquitto MQTT | 8883 | Broker MQTT (TLS) |
-| Fabric Peer (OEM) | 9051 | Peer OEMOrg |
-| Indy Pool | 9000 | Web UI Indy |
-| IPFS API | 5001 | API IPFS |
-| IPFS Swarm | 4001 | Swarm P2P |
+## Architecture
 
-## Use Cases (UC1-UC8)
+### Component Roles
 
-| UC | Nome | Descricao |
-|---|---|---|
-| UC1 | OEM Enrollment | Inscricao de OEM no consorcio via DIDComm |
-| UC2 | Model Registration | Registo de modelo de dispositivo no Fabric |
-| UC3 | Device Self-Registration | Auto-registo de EGW/SD com Genesis VC |
-| UC4 | Consumer Buys Device | Compra com Ownership VC |
-| UC5 | Device Claiming | Reivindicacao via prova de Ownership VC |
-| UC6 | SD Twinning | Criacao de DT no Ditto + streaming MQTT |
-| UC7 | SD Untwinning | Remocao do DT |
-| UC8 | SD Selling | Transferencia de propriedade entre consumidores |
+| Component | Technology | Version | Role in C2DTA |
+|-----------|-----------|---------|---------------|
+| EGW Controller | Python + FastAPI | 3.12 | Central orchestrator; exposes UC1–UC8 REST API |
+| Smart Device Simulator | Python + paho-mqtt | 3.12 | Simulates 1 Hz smartwatch telemetry (heartbeat, GPS) |
+| MQTT Broker | Eclipse Mosquitto | 2.0.x | TLS-secured MQTT relay; topic ACLs per device |
+| Digital Twin | Eclipse Ditto | 3.5.6 | WoT-compatible twin; receives MQTT telemetry |
+| Ecosystem Ledger | Hyperledger Fabric | 2.5.x | Immutable device lifecycle and dataset provenance |
+| Identity Ledger | Hyperledger Indy (von-network) | — | DID registry; VC schema and credential definitions |
+| SSI Agents | ACA-Py | 1.2.2 | Issues/verifies VCs; manages DIDComm connections |
+| Decentralised Storage | IPFS (Kubo) | 0.28.0 | Content-addressed dataset snapshots |
+| DIDComm Agent | Python + FastAPI | 3.12 | Lightweight DIDComm 2.0 message encryption/decryption |
+| Orchestration | Docker Compose v2 | — | Single-command local deployment |
+| Edge OS | Yocto Linux | — | Custom image for physical edge device deployment |
 
-Ver detalhes em `docs/architecture/use-case-flows.md`.
+### Device Lifecycle State Machine
 
-## Stack Tecnologico
+The Fabric chaincode (`services/fabric/chaincode/device-lifecycle/device_lifecycle.go`) enforces a strict state machine across the device's life:
 
-| Componente | Tecnologia | Versao |
-|---|---|---|
-| MQTT Broker | Eclipse Mosquitto | 2.0.x |
-| Digital Twin | Eclipse Ditto | 3.5.6 |
-| Blockchain Ecossistema | Hyperledger Fabric | 2.5.x |
-| Blockchain Identidade | Hyperledger Indy (von-network) | — |
-| Agentes SSI | ACA-Py | 1.2.2 |
-| Armazenamento Descentralizado | IPFS (Kubo) | 0.28.0 |
-| Simulador SD | Python + paho-mqtt | 3.12 |
-| Controller EGW | Python + FastAPI | 3.12 |
-| Chaincode | Go | 1.21+ |
-| Orquestracao | Docker Compose v2 | — |
-| CI/CD | GitHub Actions | — |
+```
+                UC3                 UC3
+  [start] ──────────▶ Manufactured ──────▶ Available
+                                               │
+                                           UC4 │ InitiateTransit
+                                               ▼
+                                          In-Transit
+                                               │
+                                           UC5 │ ClaimDevice
+                                               ▼
+                                ┌──────────  Claimed  ◀──────────┐
+                                │               │                 │
+                             UC6│ TwinDevice  UC7│ UntwinDevice   │
+                                ▼               │                 │
+                              Twinned ──────────┘                 │
+                                                                   │
+                         UC8 (re-enters In-Transit via UC4/UC5) ──┘
+                                │
+                                ▼
+                          Decommissioned  (terminal state)
+```
 
-## Documentacao
+| Transition | Chaincode function | Triggered by |
+|------------|-------------------|-------------|
+| → Manufactured | `ManufactureDevice` | UC3 |
+| Manufactured → Available | `MakeAvailable` | UC3 |
+| Available → In-Transit | `InitiateTransit` | UC4 |
+| In-Transit → Claimed | `ClaimDevice` | UC5 |
+| Claimed → Twinned | `TwinDevice` | UC6 |
+| Twinned → Claimed | `UntwinDevice` | UC7 |
+| Any → Decommissioned | `DecommissionDevice` | — |
 
-| Tema | Ficheiro |
-|---|---|
-| Arquitetura de sistema | `docs/architecture/system-architecture.md` |
-| Arquitetura MQTT | `docs/architecture/mqtt-architecture.md` |
-| Arquitetura Ditto (DT) | `docs/architecture/ditto-architecture.md` |
-| Arquitetura Fabric | `docs/architecture/fabric-architecture.md` |
-| Arquitetura Indy/SSI | `docs/architecture/indy-architecture.md` |
-| Arquitetura IPFS | `docs/architecture/ipfs-architecture.md` |
-| Arquitetura EGW Controller | `docs/architecture/egw-controller-architecture.md` |
-| Fluxos UC1-UC8 | `docs/architecture/use-case-flows.md` |
-| DIDComm | `docs/architecture/didcomm-architecture.md` |
-| Roadmap | `docs/roadmaps/milestone-plan.md` |
+### ACA-Py Agent Instances
 
-## Testes
+Five ACA-Py instances serve different actors in the ecosystem:
+
+| Agent | Admin Port | HTTP Port | Role |
+|-------|-----------|-----------|------|
+| Consortium | 8021 | 8020 | Issues Enrollment VCs to OEMs; governs ecosystem membership |
+| OEM | 8031 | 8030 | Issues Genesis VCs to devices; registers models on Fabric |
+| Consumer A | 8041 | 8040 | Receives Ownership VCs; proves ownership during claiming |
+| EGW | 8061 | 8060 | Validates credentials during device claiming (UC5) |
+| Smart Device | 8071 | 8070 | Holds Genesis VC; authenticates with EGW |
+
+### Verifiable Credential Schemas
+
+Three VC schemas are registered on Hyperledger Indy (`services/indy/schemas/`):
+
+| Schema | Issued by | Issued to | Used in | Purpose |
+|--------|----------|-----------|---------|---------|
+| Enrollment VC | Consortium | OEM | UC1, UC2 | Proves OEM is a trusted ecosystem member |
+| Genesis VC | OEM | EGW / Smart Device | UC3, UC5 | Proves device provenance and authenticity |
+| Ownership VC | OEM | Consumer | UC4, UC5, UC8 | Proves consumer purchased the device |
+
+---
+
+## Use Cases (UC1–UC8)
+
+All 8 use cases are implemented in `services/egw-controller/src/egw_controller/use_cases/`.
+
+| UC | Name | Actors | Fabric Transition | VCs Involved | Services |
+|----|------|--------|------------------|-------------|---------|
+| UC1 | OEM Enrollment | Consortium, OEM | — | Enrollment VC (issued) | ACA-Py |
+| UC2 | Model Registration | OEM, Consortium | — | Enrollment VC (verified) | ACA-Py, Fabric |
+| UC3 | Device Self-Registration | OEM, EGW/SD | → Manufactured → Available | Genesis VC (issued) | ACA-Py, Fabric |
+| UC4 | Consumer Buys Device | Consumer, OEM | Available → In-Transit | Ownership VC (issued) | ACA-Py, Fabric |
+| UC5 | Device Claiming | Consumer, EGW | In-Transit → Claimed | Ownership VC (verified) | ACA-Py, Fabric |
+| UC6 | SD Twinning | EGW Controller | Claimed → Twinned | — | Ditto, MQTT, IPFS, Fabric |
+| UC7 | SD Untwinning | EGW Controller | Twinned → Claimed | — | Ditto, MQTT, IPFS, Fabric |
+| UC8 | SD Selling | Consumer A→B | → In-Transit | Ownership VC (revoked + re-issued) | ACA-Py, Fabric |
+
+For detailed step-by-step flows per use case, see [`docs/architecture/use-case-flows.md`](docs/architecture/use-case-flows.md).
+
+---
+
+## API Reference — EGW Controller
+
+Base URL: `http://localhost:8090`
+Full OpenAPI docs: `http://localhost:8090/docs`
+
+| Endpoint | Method | Use Case | Description |
+|----------|--------|----------|-------------|
+| `/uc/enrollment` | POST | UC1 | OEM enrollment into consortium via DIDComm |
+| `/uc/register-model` | POST | UC2 | Register device model on Hyperledger Fabric |
+| `/uc/register-device` | POST | UC3 | Device self-registration with Genesis VC issuance |
+| `/uc/purchase` | POST | UC4 | Consumer purchases device; Ownership VC issued |
+| `/uc/claim` | POST | UC5 | Consumer claims device via Ownership VC proof |
+| `/uc/twin` | POST | UC6 | Create Digital Twin in Ditto + start MQTT streaming |
+| `/uc/untwin` | POST | UC7 | Remove Digital Twin; final snapshot to IPFS |
+| `/uc/sell` | POST | UC8 | Transfer device ownership to new consumer |
+| `/devices/{device_id}` | GET | — | Query device state from Fabric ledger |
+| `/devices` | GET | — | List devices filtered by `?state=` or `?owner=` |
+| `/transactions` | GET | — | List all multi-step transactions with step status |
+| `/health` | GET | — | Health check |
+
+---
+
+## Port Mappings
+
+| Service | Port | Protocol | Description |
+|---------|------|----------|-------------|
+| DIDComm Agent | 8000 | HTTP | DIDComm 2.0 MVP REST API |
+| ACA-Py Consortium | 8020 / 8021 | HTTP | HTTP / Admin API |
+| ACA-Py OEM | 8030 / 8031 | HTTP | HTTP / Admin API |
+| ACA-Py Consumer A | 8040 / 8041 | HTTP | HTTP / Admin API |
+| ACA-Py EGW | 8060 / 8061 | HTTP | HTTP / Admin API |
+| ACA-Py Smart Device | 8070 / 8071 | HTTP | HTTP / Admin API |
+| Ditto (nginx) | 8080 | HTTP | Digital Twin REST API |
+| IPFS Gateway | 8081 | HTTP | IPFS HTTP gateway |
+| EGW Controller | 8090 | HTTP | Main orchestration API (FastAPI) |
+| Fabric Orderer | 7050 | gRPC | Raft ordering service |
+| Fabric Peer (Consortium) | 7051 | gRPC | ConsortiumOrg peer |
+| Fabric CA (Consortium) | 7054 | HTTP | Certificate Authority |
+| Fabric CA (OEM) | 8054 | HTTP | Certificate Authority |
+| Mosquitto MQTT | 8883 | MQTT/TLS | MQTT broker (TLS required) |
+| Fabric Peer (OEM) | 9051 | gRPC | OEMOrg peer |
+| Indy Pool (Web UI) | 9000 | HTTP | Hyperledger Indy pool explorer |
+| IPFS API | 5001 | HTTP | IPFS Kubo API |
+| IPFS Swarm | 4001 | TCP/UDP | IPFS P2P swarm |
+
+---
+
+## Tests
 
 ```bash
-# Testes do SD Simulator
-cd services/smart-device-simulator && python -m pytest tests/ -v
-
-# Testes do EGW Controller (24 testes)
+# EGW Controller — 24 unit tests (UC1–UC8 + transaction manager)
 cd services/egw-controller && python -m pytest tests/ -v
 
-# Testes do DIDComm Agent
+# Smart Device Simulator — sensor data generation + MQTT connectivity
+cd services/smart-device-simulator && python -m pytest tests/ -v
+
+# DIDComm Agent — REST API + message encryption/decryption
 cd services/didcomm-agent && python -m pytest tests/ -v
 ```
 
-## Guia Yocto
+---
 
-1. Adicionar submodulos Yocto/BSP: `git submodule add git://git.yoctoproject.org/poky yocto/poky`
-2. Inicializar ambiente: `source scripts/setup-env.sh`
-3. Construir imagem: `bitbake edgegateway-image`
+## Documentation
 
-Detalhes em `yocto/README.md`.
+| Topic | File |
+|-------|------|
+| System architecture overview | [`docs/architecture/system-architecture.md`](docs/architecture/system-architecture.md) |
+| MQTT architecture | [`docs/architecture/mqtt-architecture.md`](docs/architecture/mqtt-architecture.md) |
+| Digital Twin (Ditto) | [`docs/architecture/ditto-architecture.md`](docs/architecture/ditto-architecture.md) |
+| Hyperledger Fabric | [`docs/architecture/fabric-architecture.md`](docs/architecture/fabric-architecture.md) |
+| Hyperledger Indy / SSI | [`docs/architecture/indy-architecture.md`](docs/architecture/indy-architecture.md) |
+| IPFS storage | [`docs/architecture/ipfs-architecture.md`](docs/architecture/ipfs-architecture.md) |
+| EGW Controller design | [`docs/architecture/egw-controller-architecture.md`](docs/architecture/egw-controller-architecture.md) |
+| DIDComm agent | [`docs/architecture/didcomm-architecture.md`](docs/architecture/didcomm-architecture.md) |
+| Use case flows (UC1–UC8) | [`docs/architecture/use-case-flows.md`](docs/architecture/use-case-flows.md) |
+| Communication & data flow | [`docs/architecture/communication-and-dataflow.md`](docs/architecture/communication-and-dataflow.md) |
+| Development roadmap | [`docs/roadmaps/milestone-plan.md`](docs/roadmaps/milestone-plan.md) |
 
-## Licenca
+---
 
-Distribuido sob a licenca MIT — consulte `LICENSE` para detalhes.
+## Yocto Edge Deployment
 
-> Ultima revisao: 2026-03-20
+A custom Yocto layer (`yocto/layers/meta-edgegateway/`) packages the EGW Controller, DIDComm Agent, and Mosquitto broker as a ready-to-flash Linux image for physical edge devices.
+
+```bash
+# 1. Add Yocto/BSP submodules
+git submodule add git://git.yoctoproject.org/poky yocto/poky
+
+# 2. Initialise the build environment
+source scripts/setup-env.sh
+
+# 3. Build the edge image
+bitbake edgegateway-image
+```
+
+See [`yocto/README.md`](yocto/README.md) for supported boards and BSP configuration.
+
+---
+
+## License
+
+Distributed under the MIT License — see [`LICENSE`](LICENSE) for details.
+
+---
+
+> Reference paper: Filipe Pinto et al., "Consumer-Controlled Digital Twin Architecture", *Blockchain: Research and Applications*, Elsevier, 2025. DOI: [10.1016/j.bcra.2025.100342](https://doi.org/10.1016/j.bcra.2025.100342)
