@@ -1,0 +1,15 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: c2dta-mosquitto
+    ports:
+      - "8883:8883"
+    volumes:
+      - /etc/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - /etc/mosquitto/acl.conf:/mosquitto/config/acl.conf:ro
+      - /etc/mosquitto/certs:/mosquitto/certs:ro
+      - mosquitto-data:/mosquitto/data
+    restart: unless-stopped
+
+volumes:
+  mosquitto-data:

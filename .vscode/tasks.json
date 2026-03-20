@@ -25,6 +25,57 @@
       "type": "shell",
       "command": "npm exec -- markdownlint docs/**/*.md",
       "problemMatcher": []
+    },
+    {
+      "label": "Docker: compose up (all services)",
+      "type": "shell",
+      "command": "docker compose up -d",
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: compose down (all services)",
+      "type": "shell",
+      "command": "docker compose down",
+      "problemMatcher": []
+    },
+    {
+      "label": "Test: EGW Controller",
+      "type": "shell",
+      "command": "cd services/egw-controller && python -m pytest tests/ -v",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Test: SD Simulator",
+      "type": "shell",
+      "command": "cd services/smart-device-simulator && python -m pytest tests/ -v",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Test: DIDComm Agent",
+      "type": "shell",
+      "command": "cd services/didcomm-agent && python -m pytest tests/ -v",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Demo: run full lifecycle (UC1-UC8)",
+      "type": "shell",
+      "command": "python services/egw-controller/examples/run_full_lifecycle.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "Fabric: deploy chaincodes",
+      "type": "shell",
+      "command": "cd services/fabric && bash scripts/deploy-chaincode.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "Mosquitto: generate TLS certs",
+      "type": "shell",
+      "command": "cd services/mosquitto/certs && bash generate-certs.sh",
+      "problemMatcher": []
     }
   ]
 }

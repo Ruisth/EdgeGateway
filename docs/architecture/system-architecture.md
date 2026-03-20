@@ -18,37 +18,43 @@ This document consolidates the macro view, components and non-functional require
 ## Core modules
 | Module | Responsibilities | Notes |
 | --- | --- | --- |
-| Connectivity management | Drivers, industrial/residential adapters, secure routing | Integrate Modbus, OPC-UA, BLE, Thread, Wi-Fi 6/6E and 5G/LTE protocols. |
-| Event bus | MQTT/AMQP + persistent queues | Configurable QoS, topics segregated by logical domain and retry queue integration. |
-| AI layer | Local inference (TensorFlow Lite/ONNX Runtime) with accelerators (GPU/NPU) | Versioned models with OTA updates; checkpoints for resumption. |
-| Container orchestration | Container engine (Docker/Podman) + supervisor system (k3s, systemd, supervisord) | Must support atomic updates and rollback. |
-| Blockchain synchronisation | Agents that sign transactions, update the Digital Twin and expose APIs | Integrates DIDComm and smart contracts for governance. |
-| Observability and DevSecOps | Telemetry (Prometheus), structured logs, tracing, OTA | Integrates with CI/CD and security policies derived from the ledger. |
+| Gestão de conectividade | Drivers, adaptadores industriais/residenciais, roteamento seguro | Integrar protocolos Modbus, OPC-UA, BLE, Thread, Wi-Fi 6/6E e 5G/LTE. |
+| Barramento de eventos (MQTT) | Eclipse Mosquitto 2.0 com TLS (porta 8883), ACL por dispositivo | QoS 1 para telemetria a 1Hz, tópicos `egw/<uuid>/telemetry`. Ver `docs/architecture/mqtt-architecture.md`. |
+| Digital Twin (Eclipse Ditto) | Plataforma DT com conectividade MQTT e WoT TD | Things `org.c2dta:<uuid>`, features heartbeat/geo/timestamp. Ver `docs/architecture/ditto-architecture.md`. |
+| Blockchain Ecossistema (Fabric) | Hyperledger Fabric 2.5 — ciclo de vida 6 estados, dataset tracking | Chaincodes Go: `device-lifecycle`, `dataset-tracking`. Ver `docs/architecture/fabric-architecture.md`. |
+| Blockchain Identidade (Indy) | Hyperledger Indy (von-network) — DIDs, schemas VC | Enrollment VC, Genesis VC, Ownership VC. Ver `docs/architecture/indy-architecture.md`. |
+| Agentes SSI (ACA-Py) | 5 agentes ACA-Py (1@C, 1@O, 1@A, 1@egw, 1@sd) | Protocolos: OOB, Issue Credential v2, Present Proof v2. Ver `docs/architecture/indy-architecture.md`. |
+| Armazenamento Descentralizado (IPFS) | IPFS Kubo — snapshots DT, CIDs ancorados no Fabric | Ver `docs/architecture/ipfs-architecture.md`. |
+| EGW Controller | Orquestrador central FastAPI — 8 use cases (UC1-UC8) | Coordena Fabric, Ditto, ACA-Py, IPFS, MQTT. Ver `docs/architecture/egw-controller-architecture.md`. |
+| Camada de IA | Inferência local (TensorFlow Lite/ONNX Runtime) com aceleradores (GPU/NPU) | Modelos versionados e atualizados OTA; checkpoints para retomada. |
+| Orquestração de containers | Container engine (Docker/Podman) + sistema supervisor (k3s, systemd, supervisord) | Deve suportar atualizações atômicas e rollback. |
+| Observabilidade e DevSecOps | Telemetria (Prometheus), logs estruturados, tracing, OTA | Integra com CI/CD e políticas de segurança derivadas do ledger. |
 
-## Cross-cutting requirements
-- **Security**: secure boot, disk encryption, certificate management via TPM/HSM, mTLS on all services and automatic key rotation policies.
-- **Reliability**: software/hardware watchdogs, A/B updates (swupdate or Mender), self-healing detection and resource usage limits.
-- **Remote management**: APIs for provisioning, configuration, inventory collection and controlled OTA updates.
-- **Compliance**: adherence to LGPD/GDPR with selective retention and audit trails signed on the blockchain.
+## Requisitos transversais
+- **Segurança**: boot seguro, criptografia de disco, gestão de certificados via TPM/HSM, mTLS em todos os serviços e política de rotação automática de chaves.
+- **Confiabilidade**: watchdogs de software/hardware, atualizações A/B (swupdate ou Mender), detecção de auto-recuperação e limites de uso de recursos.
+- **Gerenciamento remoto**: APIs para provisionamento, configuração, coleta de inventário e atualizações OTA controladas.
+- **Compliance**: aderência a LGPD/GDPR com retenção seletiva e trilhas de auditoria assinadas na blockchain.
 
-## Performance criteria
-| Metric | Initial target | Notes |
+## Critérios de desempenho
+| Métrica | Meta inicial | Notas |
 | --- | --- | --- |
-| Inference latency | < 100 ms for critical models | Measured from MQTT event to command applied. |
-| Broker availability | >= 99.5% | Requires active/passive replication and fault detection. |
-| Twin synchronisation time | < 5 s for critical states | Depends on the SLA of the chosen blockchain. |
-| Maximum CPU consumption | < 75% in nominal operation | Ensures headroom for bursts and OTA. |
+| Latência de inferência | < 100 ms para modelos críticos | Medida do evento MQTT ao comando aplicado. |
+| Disponibilidade do broker | >= 99,5% | Exige replicação ativa/passiva e detecção de falhas. |
+| Tempo de sincronização do Twin | < 5 s para estados críticos | Depende do SLA da blockchain escolhida. |
+| Consumo máximo de CPU | < 75% em operação nominal | Garante headroom para bursts e OTA. |
 
-## Technical roadmap (high level)
-1. **BSP and hardware** – validate support for TPM, AI acceleration and connectivity (Roadmap Phase 0).
-2. **Yocto base** – consolidate `meta-edgegateway`, configure `edgegateway-image` and automate builds.
-3. **CI/CD pipelines** – run integration tests for containers, inference and smart contracts.
-4. **Observability** – instrument metrics/log/tracing and connect dashboards.
-5. **Living documentation** – keep PlantUML/Draw.io diagrams in `docs/architecture/diagrams/` (to be created) under version control.
+## Roadmap técnico (alto nível)
+1. **BSP e hardware** – validar suporte a TPM, aceleração de IA e conectividade (Fase 0 do roadmap).
+2. **Base Yocto** – consolidar `meta-edgegateway`, configurar `edgegateway-image` e automatizar builds.
+3. **Pipelines CI/CD** – executar testes de integração de containers, inferência e contratos inteligentes.
+4. **Observabilidade** – instrumentar métrica/log/tracing e conectar dashboards.
+5. **Documentação viva** – manter diagramas PlantUML/Draw.io em `docs/architecture/diagrams/` (a criar) com versão controlada.
 
-## Document update checklist
-- [ ] Diagram updated after each significant structural change.
-- [ ] Metrics table reviewed when new SLAs are defined.
-- [ ] Links to architectural decisions recorded in `docs/adr/` (to be created).
+## Checklist de atualização do documento
+- [ ] Diagrama atualizado após cada alteração estrutural significativa.
+- [ ] Tabela de métricas revisada quando novos SLAs forem definidos.
+- [ ] Links para decisões de arquitetura registrados na pasta `docs/adr/` (a ser criada).
 
-> Last reviewed: 2025-11-18
+> Última revisão: 2026-03-20
+
