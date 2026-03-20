@@ -1,0 +1,13 @@
+{
+  "schema_name": "EnrollmentCredential",
+  "schema_version": "1.0",
+  "description": "Verifiable Credential de inscrição de uma organizacao no consórcio C2DTA. Emitida pelo agente do consórcio (1@C) ao agente do OEM (1@O) apos validacao documental. Ver paper Seccao 3.2.1 — OEM Enrollment.",
+  "attributes": [
+    "organization_name",
+    "organization_did",
+    "role",
+    "enrollment_date",
+    "consortium_id",
+    "expiry_date"
+  ]
+}

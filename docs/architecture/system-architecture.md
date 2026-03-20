@@ -19,10 +19,15 @@ Este documento consolida a visão macro, os componentes e os requisitos não-fun
 | Módulo | Responsabilidades | Observações |
 | --- | --- | --- |
 | Gestão de conectividade | Drivers, adaptadores industriais/residenciais, roteamento seguro | Integrar protocolos Modbus, OPC-UA, BLE, Thread, Wi-Fi 6/6E e 5G/LTE. |
-| Barramento de eventos | MQTT/AMQP + filas persistentes | QoS configurável, tópicos segregados por domínio lógico e integração com fila de retry. |
+| Barramento de eventos (MQTT) | Eclipse Mosquitto 2.0 com TLS (porta 8883), ACL por dispositivo | QoS 1 para telemetria a 1Hz, tópicos `egw/<uuid>/telemetry`. Ver `docs/architecture/mqtt-architecture.md`. |
+| Digital Twin (Eclipse Ditto) | Plataforma DT com conectividade MQTT e WoT TD | Things `org.c2dta:<uuid>`, features heartbeat/geo/timestamp. Ver `docs/architecture/ditto-architecture.md`. |
+| Blockchain Ecossistema (Fabric) | Hyperledger Fabric 2.5 — ciclo de vida 6 estados, dataset tracking | Chaincodes Go: `device-lifecycle`, `dataset-tracking`. Ver `docs/architecture/fabric-architecture.md`. |
+| Blockchain Identidade (Indy) | Hyperledger Indy (von-network) — DIDs, schemas VC | Enrollment VC, Genesis VC, Ownership VC. Ver `docs/architecture/indy-architecture.md`. |
+| Agentes SSI (ACA-Py) | 5 agentes ACA-Py (1@C, 1@O, 1@A, 1@egw, 1@sd) | Protocolos: OOB, Issue Credential v2, Present Proof v2. Ver `docs/architecture/indy-architecture.md`. |
+| Armazenamento Descentralizado (IPFS) | IPFS Kubo — snapshots DT, CIDs ancorados no Fabric | Ver `docs/architecture/ipfs-architecture.md`. |
+| EGW Controller | Orquestrador central FastAPI — 8 use cases (UC1-UC8) | Coordena Fabric, Ditto, ACA-Py, IPFS, MQTT. Ver `docs/architecture/egw-controller-architecture.md`. |
 | Camada de IA | Inferência local (TensorFlow Lite/ONNX Runtime) com aceleradores (GPU/NPU) | Modelos versionados e atualizados OTA; checkpoints para retomada. |
 | Orquestração de containers | Container engine (Docker/Podman) + sistema supervisor (k3s, systemd, supervisord) | Deve suportar atualizações atômicas e rollback. |
-| Sincronização blockchain | Agentes que assinam transações, atualizam o Digital Twin e expõem APIs | Integra DIDComm e contratos inteligentes para governança. |
 | Observabilidade e DevSecOps | Telemetria (Prometheus), logs estruturados, tracing, OTA | Integra com CI/CD e políticas de segurança derivadas do ledger. |
 
 ## Requisitos transversais
@@ -51,5 +56,5 @@ Este documento consolida a visão macro, os componentes e os requisitos não-fun
 - [ ] Tabela de métricas revisada quando novos SLAs forem definidos.
 - [ ] Links para decisões de arquitetura registrados na pasta `docs/adr/` (a ser criada).
 
-> Última revisão: 2025-11-18
+> Última revisão: 2026-03-20
 

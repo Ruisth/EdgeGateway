@@ -13,6 +13,9 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     docker \
     docker-compose \
     didcomm-agent-compose \
+    mosquitto-compose \
+    sd-simulator-compose \
+    egw-controller-compose \
     python3 \
     chrony \
     curl \

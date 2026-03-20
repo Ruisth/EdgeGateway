@@ -3,46 +3,70 @@
 Derivado das fases do `EdgeGateway_Paper.pdf` e expandido para orientar planejamento tático. Atualize sempre que datas ou critérios mudarem.
 
 ## Visão resumida
-| Fase | Período sugerido | Responsável primário | Critério de saída |
-| --- | --- | --- | --- |
-| Fase 0 – Preparação | Mês 1 | Equipe de Plataforma | Hardware escolhido, BSP avaliado, requisitos de segurança/compliance aprovados. |
-| Fase 1 – Base de sistema | Meses 2-3 | Equipe Yocto/Infra | Build do `edgegateway-image` reproduzível + testes de smoke. |
-| Fase 2 – Observabilidade e governança | Meses 4-5 | Equipe DevSecOps | Stack de observabilidade ativa e políticas automatizadas. |
-| Fase 3 – Pilotos e integração | Meses 6-7 | Equipe de Produto/Field | Pilotos com dispositivos reais e documentação para auditorias. |
+| Fase | Período sugerido | Critério de saída |
+| --- | --- | --- |
+| Fase 1 — Infraestrutura MQTT + Simulador SD | Mês 1 | Mosquitto TLS operacional, simulador publicando a 1Hz |
+| Fase 2 — Digital Twin (Ditto + WoT) | Mês 1-2 | Ditto a receber telemetria via MQTT, WoT TD definido |
+| Fase 3 — Blockchain (Fabric + Chaincodes) | Mês 1-2 | Rede Fabric operacional, chaincodes deployados |
+| Fase 4 — Identidade (Indy + ACA-Py) | Mês 1-2 | Pool Indy operacional, 5 agentes ACA-Py ativos |
+| Fase 5 — IPFS | Mês 2 | Kubo operacional, add/pin/cat funcional |
+| Fase 6 — EGW Controller | Mês 3 | Orquestrador com 8 UCs, 24 testes a passar |
+| Fase 7 — Integração, CI/CD, Documentação | Mês 3-4 | Docker Compose raiz, CI verde, docs completos |
 
 ## Detalhamento
-### Fase 0 – Preparação
-- Selecionar hardware (SoC, memória, conectividade) e validar suporte a TPM/aceleradores.
-- Configurar CI/CD mínimo (lint + build de containers) e repositórios privados.
-- Formalizar requisitos de segurança, privacidade e compliance (LGPD/GDPR, políticas do ledger).
 
-**KPIs**: decisão de hardware registrada; matriz de requisitos revisada com stakeholders.
+### Fase 1 — Infraestrutura MQTT + Simulador SD
+- **1A. Eclipse Mosquitto**: Broker MQTT com TLS (porta 8883), ACL por dispositivo, persistência ativa
+- **1B. SD Simulator**: Simulador Python de smartwatch com heartbeat (random walk), geolocation (drift gaussiano), timestamp a 1Hz via paho-mqtt
 
-### Fase 1 – Base de sistema
-- Montar ambiente Yocto com `meta-edgegateway` + BSP.
-- Habilitar containers, broker MQTT, agentes blockchain e DIDComm MVP.
-- Criar pipelines de teste (unitários e integração) para inferência local e contratos inteligentes.
+**Estado**: Completo. Servicos em `services/mosquitto/` e `services/smart-device-simulator/`.
 
-**KPIs**: build diário estável, cobertura mínima 70% nos testes do agente DIDComm, documentação atualizada.
+### Fase 2 — Digital Twin (Eclipse Ditto + WoT)
+- **2A. Eclipse Ditto 3.5.6**: Stack completa (MongoDB + 5 servicos + nginx), conectividade MQTT com payload mapping JavaScript
+- **2B. WoT Thing Description**: W3C WoT TD v1.1 para smartwatch (heartbeat, geolocation, timestamp)
 
-### Fase 2 – Observabilidade e governança
-- Instrumentar métricas, logs e dashboards (Prometheus, Grafana, Loki/Fluent Bit).
-- Automatizar políticas de retenção e anonimização baseadas no ledger.
-- Integrar monitoramento com alertas vinculados ao Digital Twin.
+**Estado**: Completo. Servicos em `services/ditto/`.
 
-**KPIs**: tempo médio de detecção < 5 min, plano de resposta documentado, testes de auditoria aprovados.
+### Fase 3 — Blockchain (Hyperledger Fabric + Chaincodes)
+- Rede Fabric 2.5 (1 orderer, 2 orgs, CouchDB, 2 CAs)
+- Chaincode `device-lifecycle` (Go): 6 estados, todas as transicoes
+- Chaincode `dataset-tracking` (Go): registo e transferencia de datasets IPFS
 
-### Fase 3 – Pilotos e integração completa
-- Conectar dispositivos reais seguindo `communication-and-dataflow.md`.
-- Rodar pilotos com usuários selecionados e coletar feedback (latência, UX, confiabilidade).
-- Preparar documentação para certificações/auditorias e ajustar contratos inteligentes conforme feedback.
+**Estado**: Completo. Servicos em `services/fabric/`.
 
-**KPIs**: >= 2 pilotos concluídos, SLA de latência cumprido, relatório de auditoria assinado.
+### Fase 4 — Identidade (Hyperledger Indy + ACA-Py)
+- Pool Indy (von-network, 4 nos) com Web UI
+- 3 schemas VC: Enrollment, Genesis, Ownership
+- 5 agentes ACA-Py: Consortium, OEM, Consumer A, EGW, SD
+- Plugins C2DTA com goal codes para automacao DIDComm
 
-## Próximos passos
-1. Atribuir responsáveis nomeados e datas reais para cada marco.
-2. Criar issues/épicos correspondentes no tracker do projeto.
-3. Revisar este plano mensalmente ou quando ocorrer mudança relevante de escopo.
+**Estado**: Completo. Servicos em `services/indy/` e `services/aca-py/`.
 
-> Última revisão: 2025-11-18
+### Fase 5 — IPFS (Kubo)
+- No IPFS local para snapshots do DT
+- CIDs ancorados no Fabric via dataset-tracking
 
+**Estado**: Completo. Servico em `services/ipfs/`.
+
+### Fase 6 — EGW Controller
+- FastAPI com endpoints para 8 use cases
+- Clientes para Fabric, Ditto, ACA-Py, IPFS
+- Transaction Manager (key-pair table)
+- 24 testes (unitarios + API)
+
+**Estado**: Completo. Servico em `services/egw-controller/`.
+
+### Fase 7 — Integração, CI/CD e Documentação
+- **7A**: Docker Compose raiz (~20 containers), GitHub Actions (CI + Yocto)
+- **7B**: 7 documentos de arquitetura (MQTT, Ditto, Fabric, Indy, IPFS, EGW Controller, UC flows)
+- **7C**: Atualizacao de README, system-architecture, milestone-plan, .gitignore, edgegateway-image.bb, tasks.json
+
+**Estado**: Completo.
+
+## Próximos Passos
+1. Conectar dispositivos reais e validar fluxo end-to-end
+2. Instrumentar observabilidade (Prometheus, Grafana)
+3. Preparar pilotos com utilizadores selecionados
+4. Auditorias de seguranca e compliance
+
+> Última revisão: 2026-03-20

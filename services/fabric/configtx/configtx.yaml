@@ -1,0 +1,153 @@
+# =============================================================================
+# Hyperledger Fabric — Configuracao do canal C2DTA
+# =============================================================================
+# Topologia: ConsortiumOrg + OEMOrg num canal partilhado (c2dta-channel)
+# Alinhado com o paper EdgeGateway_Paper.pdf (Seccao 3.1 — Dual Blockchain)
+
+Organizations:
+  - &OrdererOrg
+    Name: OrdererOrg
+    ID: OrdererMSP
+    MSPDir: ../organizations/ordererOrganizations/c2dta.example.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OrdererMSP.admin')"
+    OrdererEndpoints:
+      - orderer.c2dta.example.com:7050
+
+  - &ConsortiumOrg
+    Name: ConsortiumOrg
+    ID: ConsortiumMSP
+    MSPDir: ../organizations/peerOrganizations/consortium.c2dta.example.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('ConsortiumMSP.admin', 'ConsortiumMSP.peer', 'ConsortiumMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('ConsortiumMSP.admin', 'ConsortiumMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('ConsortiumMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('ConsortiumMSP.peer')"
+    AnchorPeers:
+      - Host: peer0.consortium.c2dta.example.com
+        Port: 7051
+
+  - &OEMOrg
+    Name: OEMOrg
+    ID: OEMMSP
+    MSPDir: ../organizations/peerOrganizations/oem.c2dta.example.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('OEMMSP.admin', 'OEMMSP.peer', 'OEMMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OEMMSP.admin', 'OEMMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OEMMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('OEMMSP.peer')"
+    AnchorPeers:
+      - Host: peer0.oem.c2dta.example.com
+        Port: 9051
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  Addresses:
+    - orderer.c2dta.example.com:7050
+  EtcdRaft:
+    Consenters:
+      - Host: orderer.c2dta.example.com
+        Port: 7050
+        ClientTLSCert: ../organizations/ordererOrganizations/c2dta.example.com/orderers/orderer.c2dta.example.com/tls/server.crt
+        ServerTLSCert: ../organizations/ordererOrganizations/c2dta.example.com/orderers/orderer.c2dta.example.com/tls/server.crt
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *OrdererCapabilities
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+Profiles:
+  C2DTAGenesis:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *ConsortiumOrg
+        - *OEMOrg

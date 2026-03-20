@@ -1,0 +1,39 @@
+{
+  "targetActorSelection": "/system/sharding/connection",
+  "headers": {
+    "aggregate": false
+  },
+  "piggybackCommand": {
+    "type": "connectivity.commands:createConnection",
+    "connection": {
+      "id": "c2dta-mqtt-connection",
+      "connectionType": "mqtt",
+      "connectionStatus": "open",
+      "uri": "ssl://mosquitto:8883",
+      "failoverEnabled": true,
+      "validateCertificates": false,
+      "sources": [
+        {
+          "addresses": [
+            "egw/+/telemetry"
+          ],
+          "authorizationContext": [
+            "nginx:ditto"
+          ],
+          "qos": 1,
+          "payloadMapping": [
+            "c2dta-smartwatch-mapper"
+          ]
+        }
+      ],
+      "mappingDefinitions": {
+        "c2dta-smartwatch-mapper": {
+          "mappingEngine": "JavaScript",
+          "options": {
+            "incomingScript": "function mapToDittoProtocolMsg(headers, textPayload, bytePayload, contentType) {\n  var payload = JSON.parse(textPayload);\n  var deviceUuid = payload.device_uuid;\n  var thingId = 'org.c2dta:' + deviceUuid;\n  var value = {\n    heartbeat: {\n      properties: {\n        bpm: payload.heartbeat_bpm\n      }\n    },\n    geolocation: {\n      properties: {\n        latitude: payload.geolocation.lat,\n        longitude: payload.geolocation.lon\n      }\n    },\n    timestamp: {\n      properties: {\n        value: payload.timestamp\n      }\n    }\n  };\n  return Ditto.buildDittoProtocolMsg(\n    'org.c2dta',\n    deviceUuid,\n    'things',\n    'twin',\n    'commands',\n    'merge',\n    '/features',\n    headers,\n    value\n  );\n}"
+          }
+        }
+      }
+    }
+  }
+}

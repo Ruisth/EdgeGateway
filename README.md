@@ -1,73 +1,144 @@
-# Edge Gateway para IA Pessoal baseada em Blockchain
+# Edge Gateway — Consumer-Controlled Digital Twin Architecture (C2DTA)
 
-Base de conhecimento e código do Edge Gateway descrito no paper `EdgeGateway_Paper.pdf`. O objetivo é conectar sensores locais, pipelines de IA embarcada e um Digital Twin protegido por blockchain, mantendo soberania de dados, inferência de baixa latência e governança auditável.
+Implementacao completa da arquitetura **C2DTA** descrita no paper `EdgeGateway_Paper.pdf`. O Edge Gateway transfere o Digital Twin (DT) do smart device para o edge sob controlo do consumidor, usando blockchain dual (Hyperledger Fabric + Indy), SSI/DIDComm (ACA-Py), Eclipse Ditto, Eclipse Mosquitto e IPFS.
 
-## Visão geral rápida
-- **Stack principal**: Yocto Project + containers OCI, pipelines de IA embarcada e agentes blockchain/DIDComm.
-- **Documentação**: modelos arquiteturais em `docs/`, resumo do paper e planos de marcos.
-- **Serviços**: protótipo do agente DIDComm em `services/didcomm-agent/`.
-- **Infra**: scripts e tarefas de VS Code para preparar o ambiente de build.
+## Quick Start
 
-## Como começar
-1. **Clonar e abrir no VS Code** – as extensões sugeridas estão em `.vscode/extensions.json`.
-2. **Adicionar submódulos Yocto/BSP**
-   ```bash
-   git submodule add git://git.yoctoproject.org/poky yocto/poky
-   git submodule update --init --recursive
-   ```
-3. **Inicializar ambiente** – rode `source scripts/setup-env.sh` (ou a task `setup environment` do VS Code).
-4. **Construir imagem de referência** – execute `bitbake edgegateway-image` dentro do ambiente.
-5. **Documentar decisões** – atualize os arquivos em `docs/` conforme as escolhas de arquitetura e hardware evoluírem.
+```bash
+# 1. Clonar e abrir no VS Code
+git clone <repo-url> && cd EdgeGateway
+code .
 
-## Estrutura do repositório
-```text
-.vscode/                     Definições de tarefas, lint e extensões recomendadas
-docs/                        Bases de arquitetura, pesquisa e roadmap
-  architecture/              Arquitetura de sistema, fluxos e DIDComm
-  paper/                     Resumo navegável do EdgeGateway_Paper.pdf
-  research/                  Estudos complementares sobre IA pessoal e blockchain
-  roadmaps/                  Marcos técnicos e backlog inicial
-scripts/                     Scripts utilitários (ex.: setup-env.sh)
-services/
-  didcomm-agent/             Serviço FastAPI + testes para o agente DIDComm
-yocto/
-  README.md                  Guia rápido de camadas e receitas
-  layers/meta-edgegateway/   Receita edgegateway-image e espaço para containers
-EdgeGateway_Paper.pdf        Referência completa do projeto
-LICENSE                      Licença MIT
+# 2. Gerar certificados TLS para MQTT
+cd services/mosquitto/certs && bash generate-certs.sh && cd -
+
+# 3. Lancar todos os servicos (~20 containers)
+docker compose up -d
+
+# 4. Verificar health
+curl http://localhost:8090/health
+
+# 5. Executar demo do ciclo de vida completo (UC1-UC8)
+python services/egw-controller/examples/run_full_lifecycle.py
 ```
 
-## Documentação recomendada
-| Tema | Onde começar | Por que importa |
-| --- | --- | --- |
-| Arquitetura de sistema | `docs/architecture/system-architecture.md` | Visão 360° dos módulos do gateway |
-| Fluxos de dados e comunicação | `docs/architecture/communication-and-dataflow.md` | Regras de QoS, protocolos e requisitos operacionais |
-| Subsistema DIDComm | `docs/architecture/didcomm-architecture.md` + `services/didcomm-agent/README.md` | Guia para o MVP de mensageria segura |
-| Resumo do paper | `docs/paper/edgegateway-paper-summary.md` | Índice rápido do PDF original |
-| Roadmap | `docs/roadmaps/milestone-plan.md` | Sequenciamento das fases do projeto |
+## Estrutura do Repositorio
 
-## Guia Yocto em 5 minutos
-1. Garanta que `yocto/poky` e camadas BSP estejam presentes.
-2. Use o script `scripts/setup-env.sh` para exportar variáveis do BitBake.
-3. Certifique-se de que `yocto/layers/meta-edgegateway/conf/layer.conf` esteja habilitado no `bblayers.conf`.
-4. Ajuste `yocto/layers/meta-edgegateway/recipes-core/images/edgegateway-image.bb` adicionando pacotes (containers, MQTT, agentes blockchain, ferramentas de IA e observabilidade).
-5. Adicione receitas específicas em `recipes-containers/` e `recipes-security/` para refletir os requisitos do paper.
+```text
+.github/workflows/           CI/CD (GitHub Actions)
+.vscode/                     Tasks, lint, extensoes
+docs/
+  architecture/              Arquitetura de sistema, MQTT, Ditto, Fabric, Indy, IPFS, EGW Controller, fluxos UC
+  paper/                     Resumo do EdgeGateway_Paper.pdf
+  roadmaps/                  Marcos tecnicos
+services/
+  mosquitto/                 MQTT Broker (Eclipse Mosquitto 2.0, TLS)
+  smart-device-simulator/    Simulador de smartwatch (1Hz heartbeat/geo/timestamp)
+  ditto/                     Digital Twin (Eclipse Ditto 3.5.6 + WoT TD)
+  fabric/                    Blockchain ecossistema (Hyperledger Fabric 2.5 + chaincodes Go)
+  indy/                      Blockchain identidade (Hyperledger Indy, von-network)
+  aca-py/                    Agentes SSI (ACA-Py 1.2.2, 5 instancias)
+  ipfs/                      Armazenamento descentralizado (IPFS Kubo 0.28)
+  egw-controller/            Orquestrador central (FastAPI, 8 use cases)
+  didcomm-agent/             Agente DIDComm MVP
+yocto/
+  layers/meta-edgegateway/   Receitas Yocto para deploy no edge
+docker-compose.yml           Orquestracao de todos os servicos
+EdgeGateway_Paper.pdf        Paper de referencia
+```
 
-Detalhes extras estão em `yocto/README.md` e devem ser expandidos conforme as customizações aumentarem.
+## Tabela de Portas
 
-## Serviço DIDComm
-- Código e testes em `services/didcomm-agent/`.
-- Stack: FastAPI + libsodium (X25519 + ChaCha20-Poly1305), com scripts de exemplo (`examples/demo_exchange.py`).
-- Rode `python -m pytest` para testes locais e `docker compose up --build` para a API containerizada.
-- A arquitetura conceitual está alinhada a `docs/architecture/didcomm-architecture.md`.
+| Servico | Porta | Descricao |
+|---|---|---|
+| DIDComm Agent | 8000 | API REST DIDComm MVP |
+| ACA-Py Consortium | 8020/8021 | HTTP/Admin SSI |
+| ACA-Py OEM | 8030/8031 | HTTP/Admin SSI |
+| ACA-Py Consumer A | 8040/8041 | HTTP/Admin SSI |
+| ACA-Py EGW | 8060/8061 | HTTP/Admin SSI |
+| ACA-Py SD | 8070/8071 | HTTP/Admin SSI |
+| Ditto (nginx) | 8080 | API Digital Twin |
+| IPFS Gateway | 8081 | Gateway HTTP IPFS |
+| EGW Controller | 8090 | API Orquestrador (FastAPI) |
+| Fabric Orderer | 7050 | Orderer Raft |
+| Fabric Peer (Consortium) | 7051 | Peer ConsortiumOrg |
+| Fabric CA (Consortium) | 7054 | Certificate Authority |
+| Fabric CA (OEM) | 8054 | Certificate Authority |
+| Mosquitto MQTT | 8883 | Broker MQTT (TLS) |
+| Fabric Peer (OEM) | 9051 | Peer OEMOrg |
+| Indy Pool | 9000 | Web UI Indy |
+| IPFS API | 5001 | API IPFS |
+| IPFS Swarm | 4001 | Swarm P2P |
 
-## Roadmap e próximos passos
-1. **Fase 0** – definir hardware-alvo, BSPs e requisitos de segurança/compliance.
-2. **Fase 1** – estabilizar a camada `meta-edgegateway`, broker MQTT e agentes blockchain.
-3. **Fase 2** – observabilidade, governança de dados e automação OTA.
-4. **Fase 3** – pilotos com dispositivos reais e preparação para auditorias.
+## Use Cases (UC1-UC8)
 
-Atualize `docs/roadmaps/milestone-plan.md` e os diagramas em `docs/architecture/` à medida que novas decisões forem tomadas (hardware, modelos de IA, contratos inteligentes etc.).
+| UC | Nome | Descricao |
+|---|---|---|
+| UC1 | OEM Enrollment | Inscricao de OEM no consorcio via DIDComm |
+| UC2 | Model Registration | Registo de modelo de dispositivo no Fabric |
+| UC3 | Device Self-Registration | Auto-registo de EGW/SD com Genesis VC |
+| UC4 | Consumer Buys Device | Compra com Ownership VC |
+| UC5 | Device Claiming | Reivindicacao via prova de Ownership VC |
+| UC6 | SD Twinning | Criacao de DT no Ditto + streaming MQTT |
+| UC7 | SD Untwinning | Remocao do DT |
+| UC8 | SD Selling | Transferencia de propriedade entre consumidores |
 
-## Licença
-Distribuído sob a licença MIT – consulte `LICENSE` para detalhes.
+Ver detalhes em `docs/architecture/use-case-flows.md`.
+
+## Stack Tecnologico
+
+| Componente | Tecnologia | Versao |
+|---|---|---|
+| MQTT Broker | Eclipse Mosquitto | 2.0.x |
+| Digital Twin | Eclipse Ditto | 3.5.6 |
+| Blockchain Ecossistema | Hyperledger Fabric | 2.5.x |
+| Blockchain Identidade | Hyperledger Indy (von-network) | — |
+| Agentes SSI | ACA-Py | 1.2.2 |
+| Armazenamento Descentralizado | IPFS (Kubo) | 0.28.0 |
+| Simulador SD | Python + paho-mqtt | 3.12 |
+| Controller EGW | Python + FastAPI | 3.12 |
+| Chaincode | Go | 1.21+ |
+| Orquestracao | Docker Compose v2 | — |
+| CI/CD | GitHub Actions | — |
+
+## Documentacao
+
+| Tema | Ficheiro |
+|---|---|
+| Arquitetura de sistema | `docs/architecture/system-architecture.md` |
+| Arquitetura MQTT | `docs/architecture/mqtt-architecture.md` |
+| Arquitetura Ditto (DT) | `docs/architecture/ditto-architecture.md` |
+| Arquitetura Fabric | `docs/architecture/fabric-architecture.md` |
+| Arquitetura Indy/SSI | `docs/architecture/indy-architecture.md` |
+| Arquitetura IPFS | `docs/architecture/ipfs-architecture.md` |
+| Arquitetura EGW Controller | `docs/architecture/egw-controller-architecture.md` |
+| Fluxos UC1-UC8 | `docs/architecture/use-case-flows.md` |
+| DIDComm | `docs/architecture/didcomm-architecture.md` |
+| Roadmap | `docs/roadmaps/milestone-plan.md` |
+
+## Testes
+
+```bash
+# Testes do SD Simulator
+cd services/smart-device-simulator && python -m pytest tests/ -v
+
+# Testes do EGW Controller (24 testes)
+cd services/egw-controller && python -m pytest tests/ -v
+
+# Testes do DIDComm Agent
+cd services/didcomm-agent && python -m pytest tests/ -v
+```
+
+## Guia Yocto
+
+1. Adicionar submodulos Yocto/BSP: `git submodule add git://git.yoctoproject.org/poky yocto/poky`
+2. Inicializar ambiente: `source scripts/setup-env.sh`
+3. Construir imagem: `bitbake edgegateway-image`
+
+Detalhes em `yocto/README.md`.
+
+## Licenca
+
+Distribuido sob a licenca MIT — consulte `LICENSE` para detalhes.
+
+> Ultima revisao: 2026-03-20
