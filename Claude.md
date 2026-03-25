@@ -6,9 +6,9 @@ Twin Architecture (C2DTA). O tema integra Digital Twins, Self-Sovereign
 Identity (SSI), Blockchain e o Personal Data Ecosystem.
 
 ## Documentação de referência
-- O artigo base está em `docs/EdgeGateway_Paper.pdf` — lê-o antes 
+- O artigo base está em `uni/paper/EdgeGateway_Paper.pdf` — lê-o antes 
   de escrever qualquer secção
-- Os materiais da cadeira estão em `docs/` (guidelines, SLR, PRISMA, 
+- Os materiais da cadeira estão em `uni/study_material/` (guidelines, SLR, PRISMA, 
   Design Science Research)
 
 ## Tecnologias do C2DTA
@@ -17,10 +17,11 @@ DIDComm, MQTT, Web of Things
 
 ## Regras de escrita
 - LaTeX, em inglês académico
-- Usar biblatex para referências (ficheiro references/bibliography.bib)
+- Usar biblatex para referências (ficheiro `uni/tese/references.bib`)
 - Cada capítulo num ficheiro separado em chapters/
 - Compilar com: pdflatex main && biber main && pdflatex main
 - Estilo: voz ativa, presente do indicativo, frases concisas
+- o ficheiro LaTex a desenvolver está em `uni/tese/main.tex`
 
 ## Estrutura da dissertação
 1. Introduction (chapters/01-introduction.tex)
