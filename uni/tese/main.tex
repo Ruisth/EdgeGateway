@@ -15,6 +15,13 @@
 \usepackage{etoolbox}
 \usepackage{csquotes}
 \usepackage[printonlyused]{acronym}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
 %
 % you may need to uncomment the command below if you use eps format for figures
 %\usepackage{epstopdf}
@@ -240,7 +247,43 @@ Write here your abstract in English.
 \chapter*{List of Acronyms}
 \begin{acronym}
  \acro{AI}{Artificial Intelligence}
+ \acro{BIoT}{Blockchain-based Internet of Things}
+ \acro{C2DTA}{Consumer-Controlled Digital Twin Architecture}
+ \acro{C2PDT}{Consumer-Controlled Personal Digital Twin}
+ \acro{CID}{Content Identifier}
+ \acro{DGA}{Data Governance Act}
+ \acro{DID}{Decentralized Identifier}
+ \acro{DIDComm}{Decentralized Identifier Communication}
+ \acro{DLT}{Distributed Ledger Technology}
+ \acro{DSR}{Design Science Research}
+ \acro{DT}{Digital Twin}
+ \acro{EGW}{Edge Gateway}
+ \acro{FSD}{Full Self-Driving}
+ \acro{GDPR}{General Data Protection Regulation}
+ \acro{HSM}{Hardware Security Module}
+ \acro{IDC}{International Data Corporation}
+ \acro{IDS}{International Data Spaces}
+ \acro{IoT}{Internet of Things}
+ \acro{IPFS}{InterPlanetary File System}
+ \acro{M2M}{Machine-to-Machine}
  \acro{ML}{Machine Learning}
+ \acro{MQTT}{Message Queuing Telemetry Transport}
+ \acro{OEM}{Original Equipment Manufacturer}
+ \acro{PDE}{Personal Data Ecosystem}
+ \acro{PDS}{Personal Data Store}
+ \acro{PDT}{Personal Digital Twin}
+ \acro{PRISMA}{Preferred Reporting Items for Systematic Reviews and Meta-Analyses}
+ \acro{SD}{Smart Device}
+ \acro{SLR}{Systematic Literature Review}
+ \acro{SSI}{Self-Sovereign Identity}
+ \acro{TD}{Thing Description}
+ \acro{TLS}{Transport Layer Security}
+ \acro{TPM}{Trusted Platform Module}
+ \acro{VC}{Verifiable Credential}
+ \acro{VDR}{Verifiable Data Registry}
+ \acro{VP}{Verifiable Presentation}
+ \acro{W3C}{World Wide Web Consortium}
+ \acro{WoT}{Web of Things}
 \end{acronym}
 
 \mainmatter
@@ -250,51 +293,14 @@ Write here your abstract in English.
 
 \setcounter{page}{1} \pagenumbering{arabic}
 
-\chapter{Introduction}
-\label{ch:introduction}
+\input{chapters/01-introduction}
 
-% O primeiro parágrafo de cada secção ou capítulo não deve ser indentado.
-\noindent Newell et al.~\cite{newell:et:al:1958} present a seminal work in \ac{AI}.
+\input{chapters/02-state-of-art}
 
-Table~\ref{tab:my_label_1} shows a beautiful table. This beautiful table has two columns, both centered, and two rows. The numbering restarts in each chapter, but includes the chapter number.
-
-\begin{table}[htb]
-    \caption{Tables' captions should always appear on the top of the table}
-    \label{tab:my_label_1}
-    \begin{tabular}{c|c}
-         H1 & H2 \\\hline
-         v1 & v2
-    \end{tabular}
-\end{table}
-
-Nowadays, what it is recognized as \ac{AI} is mostly \ac{ML}.
-
-\section{Document Structure}
-\label{sect:docstruct}
-
-\noindent This document is structured as follows.
-
-\chapter{Conclusion}
-\label{ch:conclusion}
-
-\noindent Figure~\ref{fig:my_label} shows the logo of the Iscte school responsible for this master program.
-
-\begin{figure}[hbt]
-    \includegraphics[width=.42\columnwidth]{imagens/ista.png}
-    \caption{Figures' captions should always appear on the bottom of the figure}
-    \label{fig:my_label}
-\end{figure}
-
-Table~\ref{tab:my_label_2} shows the same beautiful table of Chapter~\ref{ch:introduction}, but, as we can see, it has now the number \ref{tab:my_label_2}, as expected.
-
-\begin{table}[htb]
-    \caption{Tables' captions should always appear on the top of the table}
-    \label{tab:my_label_2}
-    \begin{tabular}{c|c}
-         H1 & H2 \\\hline
-         v1 & v2
-    \end{tabular}
-\end{table}
+% Future chapters:
+% \input{chapters/03-architecture}
+% \input{chapters/04-results}
+% \input{chapters/05-conclusions}
 
 \printbibliography[title={References}]
 %\printbibliography[title={Bibliografia}] % PT
