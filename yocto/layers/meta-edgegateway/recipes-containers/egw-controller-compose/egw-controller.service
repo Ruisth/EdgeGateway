@@ -1,0 +1,15 @@
+[Unit]
+Description=EGW Controller (C2DTA)
+Requires=docker.service
+After=docker.service mosquitto.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/edgegateway/egw-controller
+ExecStart=/usr/bin/docker compose up
+ExecStop=/usr/bin/docker compose down
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

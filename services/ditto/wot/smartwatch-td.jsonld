@@ -1,0 +1,125 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1",
+    {
+      "om2": "http://www.ontology-of-units-of-measure.org/resource/om-2/",
+      "schema": "https://schema.org/"
+    }
+  ],
+  "@type": "Thing",
+  "id": "urn:c2dta:smartwatch:model:heartbeat-v1",
+  "title": "C2DTA Smartwatch Heartbeat v1",
+  "description": "Digital Twin de smartwatch com sensor de heartbeat e GPS, conforme o paper C2DTA (Consumer-Controlled Digital Twin Architecture).",
+  "version": {
+    "model": "1.0.0"
+  },
+  "created": "2026-03-19T00:00:00Z",
+  "modified": "2026-03-19T00:00:00Z",
+  "securityDefinitions": {
+    "nosec_sc": {
+      "scheme": "nosec",
+      "description": "Sem seguranca — apenas para desenvolvimento"
+    },
+    "bearer_sc": {
+      "scheme": "bearer",
+      "in": "header",
+      "description": "Token Bearer para producao"
+    }
+  },
+  "security": "nosec_sc",
+  "properties": {
+    "heartbeat": {
+      "type": "object",
+      "title": "Heartbeat Sensor",
+      "description": "Sensor de batimento cardiaco do smartwatch",
+      "properties": {
+        "bpm": {
+          "type": "integer",
+          "title": "Batimentos por Minuto",
+          "description": "Frequencia cardiaca medida pelo sensor PPG",
+          "minimum": 0,
+          "maximum": 300,
+          "unit": "om2:beatsPerMinute",
+          "readOnly": true
+        }
+      },
+      "required": ["bpm"],
+      "observable": true,
+      "forms": [
+        {
+          "href": "/api/2/things/{thingId}/features/heartbeat/properties/bpm",
+          "op": "readproperty",
+          "contentType": "application/json"
+        }
+      ]
+    },
+    "geolocation": {
+      "type": "object",
+      "title": "Geolocalizacao",
+      "description": "Coordenadas GPS WGS84 do dispositivo",
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "title": "Latitude",
+          "description": "Latitude WGS84",
+          "minimum": -90,
+          "maximum": 90,
+          "unit": "om2:degree",
+          "readOnly": true
+        },
+        "longitude": {
+          "type": "number",
+          "title": "Longitude",
+          "description": "Longitude WGS84",
+          "minimum": -180,
+          "maximum": 180,
+          "unit": "om2:degree",
+          "readOnly": true
+        }
+      },
+      "required": ["latitude", "longitude"],
+      "observable": true,
+      "forms": [
+        {
+          "href": "/api/2/things/{thingId}/features/geolocation",
+          "op": "readproperty",
+          "contentType": "application/json"
+        }
+      ]
+    },
+    "timestamp": {
+      "type": "object",
+      "title": "Timestamp",
+      "description": "Ultima atualizacao do sensor",
+      "properties": {
+        "value": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Timestamp UTC",
+          "description": "Timestamp ISO 8601 da ultima leitura",
+          "readOnly": true
+        }
+      },
+      "required": ["value"],
+      "observable": true,
+      "forms": [
+        {
+          "href": "/api/2/things/{thingId}/features/timestamp/properties/value",
+          "op": "readproperty",
+          "contentType": "application/json"
+        }
+      ]
+    }
+  },
+  "links": [
+    {
+      "rel": "type",
+      "href": "https://github.com/Ruisth/EdgeGateway",
+      "type": "text/html"
+    }
+  ],
+  "schema:manufacturer": {
+    "@type": "schema:Organization",
+    "schema:name": "C2DTA Consortium"
+  }
+}

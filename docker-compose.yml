@@ -1,0 +1,662 @@
+# =============================================================================
+# C2DTA Edge Gateway — Docker Compose Raiz
+# =============================================================================
+# Orquestra todos os servicos da arquitetura C2DTA.
+# Uso: docker compose up -d
+#
+# Servicos (~20 containers):
+#   - Mosquitto (MQTT broker TLS)
+#   - SD Simulator (smartwatch simulado)
+#   - Eclipse Ditto (Digital Twin platform: MongoDB + 5 servicos + nginx)
+#   - Hyperledger Fabric (orderer + 2 peers + 2 CouchDB + 2 CA + CLI)
+#   - Hyperledger Indy (von-network, 4 nos)
+#   - ACA-Py (5 agentes SSI)
+#   - IPFS (Kubo)
+#   - EGW Controller (orquestrador FastAPI)
+#   - DIDComm Agent (MVP existente)
+
+services:
+  # ============================================================
+  # MQTT Broker (Eclipse Mosquitto)
+  # ============================================================
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: c2dta-mosquitto
+    ports:
+      - "8883:8883"
+    volumes:
+      - ./services/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./services/mosquitto/config/acl.conf:/mosquitto/config/acl.conf:ro
+      - ./services/mosquitto/certs:/mosquitto/certs:ro
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-h", "127.0.0.1", "-p", "1883", "-t", "$$SYS/broker/uptime", "-C", "1", "-W", "3"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - c2dta-net
+
+  # ============================================================
+  # Smart Device Simulator
+  # ============================================================
+  sd-simulator:
+    build: ./services/smart-device-simulator
+    image: edgegateway/sd-simulator:dev
+    container_name: c2dta-sd-simulator
+    environment:
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=8883
+      - MQTT_CA_CERT=/certs/ca.crt
+      - MQTT_CLIENT_CERT=/certs/edgegateway.crt
+      - MQTT_CLIENT_KEY=/certs/edgegateway.key
+    volumes:
+      - ./services/mosquitto/certs:/certs:ro
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  # ============================================================
+  # Eclipse Ditto (Digital Twin Platform)
+  # ============================================================
+  mongodb:
+    image: mongo:6.0
+    container_name: c2dta-ditto-mongodb
+    volumes:
+      - ditto-mongodb-data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - c2dta-net
+
+  ditto-policies:
+    image: eclipse/ditto-policies:3.5.6
+    container_name: c2dta-ditto-policies
+    environment:
+      - MONGO_DB_URI=mongodb://mongodb:27017/policies
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      c2dta-net:
+        aliases:
+          - ditto-cluster
+
+  ditto-things:
+    image: eclipse/ditto-things:3.5.6
+    container_name: c2dta-ditto-things
+    environment:
+      - MONGO_DB_URI=mongodb://mongodb:27017/things
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      c2dta-net:
+        aliases:
+          - ditto-cluster
+
+  ditto-things-search:
+    image: eclipse/ditto-things-search:3.5.6
+    container_name: c2dta-ditto-things-search
+    environment:
+      - MONGO_DB_URI=mongodb://mongodb:27017/things-search
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      c2dta-net:
+        aliases:
+          - ditto-cluster
+
+  ditto-connectivity:
+    image: eclipse/ditto-connectivity:3.5.6
+    container_name: c2dta-ditto-connectivity
+    environment:
+      - MONGO_DB_URI=mongodb://mongodb:27017/connectivity
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      c2dta-net:
+        aliases:
+          - ditto-cluster
+
+  ditto-gateway:
+    image: eclipse/ditto-gateway:3.5.6
+    container_name: c2dta-ditto-gateway
+    environment:
+      - ENABLE_DUMMY_AUTH=true
+      - DEVOPS_PASSWORD=c2dta-devops
+      - BIND_HOSTNAME=0.0.0.0
+      - INSTANCE_INDEX=1
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
+    depends_on:
+      - ditto-policies
+      - ditto-things
+      - ditto-things-search
+      - ditto-connectivity
+    restart: unless-stopped
+    networks:
+      c2dta-net:
+        aliases:
+          - ditto-cluster
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: c2dta-ditto-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./services/ditto/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./services/ditto/nginx/nginx.htpasswd:/etc/nginx/nginx.htpasswd:ro
+    depends_on:
+      - ditto-gateway
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - c2dta-net
+
+  # ============================================================
+  # Hyperledger Fabric (Ecosystem Ledger)
+  # ============================================================
+  orderer.c2dta.example.com:
+    image: hyperledger/fabric-orderer:2.5
+    container_name: c2dta-orderer
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=none
+      - ORDERER_CHANNELPARTICIPATION_ENABLED=true
+      - ORDERER_ADMIN_TLS_ENABLED=true
+      - ORDERER_ADMIN_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_ADMIN_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
+    volumes:
+      - ./services/fabric/organizations/ordererOrganizations/c2dta.example.com/orderers/orderer.c2dta.example.com/msp:/var/hyperledger/orderer/msp
+      - ./services/fabric/organizations/ordererOrganizations/c2dta.example.com/orderers/orderer.c2dta.example.com/tls:/var/hyperledger/orderer/tls
+      - orderer-data:/var/hyperledger/production/orderer
+    ports:
+      - "7050:7050"
+      - "7053:7053"
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  couchdb0:
+    image: couchdb:3.3
+    container_name: c2dta-couchdb0
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    volumes:
+      - couchdb0-data:/opt/couchdb/data
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  peer0.consortium.c2dta.example.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: c2dta-peer0-consortium
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_ID=peer0.consortium.c2dta.example.com
+      - CORE_PEER_ADDRESS=peer0.consortium.c2dta.example.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.consortium.c2dta.example.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.consortium.c2dta.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.consortium.c2dta.example.com:7051
+      - CORE_PEER_LOCALMSPID=ConsortiumMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ./services/fabric/organizations/peerOrganizations/consortium.c2dta.example.com/peers/peer0.consortium.c2dta.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./services/fabric/organizations/peerOrganizations/consortium.c2dta.example.com/peers/peer0.consortium.c2dta.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0-consortium-data:/var/hyperledger/production
+    ports:
+      - "7051:7051"
+    depends_on:
+      - couchdb0
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  couchdb1:
+    image: couchdb:3.3
+    container_name: c2dta-couchdb1
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    volumes:
+      - couchdb1-data:/opt/couchdb/data
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  peer0.oem.c2dta.example.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: c2dta-peer0-oem
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_ID=peer0.oem.c2dta.example.com
+      - CORE_PEER_ADDRESS=peer0.oem.c2dta.example.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.oem.c2dta.example.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.oem.c2dta.example.com:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.oem.c2dta.example.com:9051
+      - CORE_PEER_LOCALMSPID=OEMMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ./services/fabric/organizations/peerOrganizations/oem.c2dta.example.com/peers/peer0.oem.c2dta.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./services/fabric/organizations/peerOrganizations/oem.c2dta.example.com/peers/peer0.oem.c2dta.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0-oem-data:/var/hyperledger/production
+    ports:
+      - "9051:9051"
+    depends_on:
+      - couchdb1
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  ca.consortium.c2dta.example.com:
+    image: hyperledger/fabric-ca:1.5
+    container_name: c2dta-ca-consortium
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-consortium
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_PORT=7054
+    ports:
+      - "7054:7054"
+    volumes:
+      - ca-consortium-data:/etc/hyperledger/fabric-ca-server
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  ca.oem.c2dta.example.com:
+    image: hyperledger/fabric-ca:1.5
+    container_name: c2dta-ca-oem
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-oem
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_PORT=8054
+    ports:
+      - "8054:8054"
+    volumes:
+      - ca-oem-data:/etc/hyperledger/fabric-ca-server
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  fabric-cli:
+    image: hyperledger/fabric-tools:2.5
+    container_name: c2dta-fabric-cli
+    tty: true
+    stdin_open: true
+    environment:
+      - GOPATH=/opt/gopath
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_TLS_ENABLED=true
+    volumes:
+      - ./services/fabric/organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/organizations
+      - ./services/fabric/chaincode:/opt/gopath/src/github.com/chaincode
+      - ./services/fabric/scripts:/opt/gopath/src/github.com/scripts
+    depends_on:
+      - peer0.consortium.c2dta.example.com
+      - peer0.oem.c2dta.example.com
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  # ============================================================
+  # Hyperledger Indy (Identity Ledger)
+  # ============================================================
+  indy-pool:
+    image: ghcr.io/bcgov/von-network-base:latest
+    container_name: c2dta-indy-pool
+    ports:
+      - "9000:9000"
+      - "9701:9701"
+      - "9702:9702"
+      - "9703:9703"
+      - "9704:9704"
+      - "9705:9705"
+      - "9706:9706"
+      - "9707:9707"
+      - "9708:9708"
+    environment:
+      - IP=indy-pool
+      - GENESIS_URL=
+      - LEDGER_SEED=000000000000000000000000Steward1
+      - LOG_LEVEL=INFO
+      - PORT=9000
+    volumes:
+      - indy-data:/home/indy/ledger
+    command: bash -c './scripts/start_nodes.sh & sleep 10 && ./scripts/start_webserver.sh'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - c2dta-net
+
+  # ============================================================
+  # ACA-Py (SSI Agents)
+  # ============================================================
+  aca-py-consortium:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-consortium
+    ports:
+      - "8020:8020"
+      - "8021:8021"
+    environment:
+      - ACAPY_LABEL=C2DTA Consortium (1@C)
+      - ACAPY_ENDPOINT=http://aca-py-consortium:8020
+      - ACAPY_ADMIN=[0.0.0.0,8021]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=consortium-wallet
+      - ACAPY_WALLET_KEY=consortium-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8020
+        --outbound-transport http
+    depends_on:
+      indy-pool:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  aca-py-oem:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-oem
+    ports:
+      - "8030:8030"
+      - "8031:8031"
+    environment:
+      - ACAPY_LABEL=C2DTA OEM (1@O)
+      - ACAPY_ENDPOINT=http://aca-py-oem:8030
+      - ACAPY_ADMIN=[0.0.0.0,8031]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=oem-wallet
+      - ACAPY_WALLET_KEY=oem-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8030
+        --outbound-transport http
+    depends_on:
+      indy-pool:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  aca-py-consumer-a:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-consumer-a
+    ports:
+      - "8040:8040"
+      - "8041:8041"
+    environment:
+      - ACAPY_LABEL=Consumer A (1@A)
+      - ACAPY_ENDPOINT=http://aca-py-consumer-a:8040
+      - ACAPY_ADMIN=[0.0.0.0,8041]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=consumer-a-wallet
+      - ACAPY_WALLET_KEY=consumer-a-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8040
+        --outbound-transport http
+    depends_on:
+      indy-pool:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  aca-py-egw:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-egw
+    ports:
+      - "8060:8060"
+      - "8061:8061"
+    environment:
+      - ACAPY_LABEL=Edge Gateway (1@egw)
+      - ACAPY_ENDPOINT=http://aca-py-egw:8060
+      - ACAPY_ADMIN=[0.0.0.0,8061]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=egw-wallet
+      - ACAPY_WALLET_KEY=egw-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8060
+        --outbound-transport http
+    depends_on:
+      indy-pool:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  aca-py-sd:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-sd
+    ports:
+      - "8070:8070"
+      - "8071:8071"
+    environment:
+      - ACAPY_LABEL=Smart Device (1@sd)
+      - ACAPY_ENDPOINT=http://aca-py-sd:8070
+      - ACAPY_ADMIN=[0.0.0.0,8071]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=sd-wallet
+      - ACAPY_WALLET_KEY=sd-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8070
+        --outbound-transport http
+    depends_on:
+      indy-pool:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  # ============================================================
+  # IPFS (Kubo)
+  # ============================================================
+  ipfs:
+    image: ipfs/kubo:v0.28.0
+    container_name: c2dta-ipfs
+    ports:
+      - "5001:5001"
+      - "8081:8080"
+      - "4001:4001"
+    volumes:
+      - ipfs-data:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ipfs id || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - c2dta-net
+
+  # ============================================================
+  # EGW Controller (Orquestrador Central)
+  # ============================================================
+  egw-controller:
+    build: ./services/egw-controller
+    image: edgegateway/egw-controller:dev
+    container_name: c2dta-egw-controller
+    ports:
+      - "8090:8090"
+    environment:
+      - DITTO_URL=http://nginx:80
+      - DITTO_USER=ditto
+      - DITTO_PASS=c2dta
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=8883
+      - IPFS_API_URL=http://ipfs:5001
+      - ACAPY_CONSORTIUM_URL=http://aca-py-consortium:8021
+      - ACAPY_OEM_URL=http://aca-py-oem:8031
+      - ACAPY_EGW_URL=http://aca-py-egw:8061
+      - FABRIC_PEER_URL=peer0.consortium.c2dta.example.com:7051
+      - FABRIC_CHANNEL=c2dta-channel
+      - DIDCOMM_AGENT_URL=http://didcomm-agent:8000
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      nginx:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+  # ============================================================
+  # DIDComm Agent (MVP existente)
+  # ============================================================
+  didcomm-agent:
+    build: ./services/didcomm-agent
+    image: edgegateway/didcomm-agent:dev
+    container_name: c2dta-didcomm-agent
+    ports:
+      - "8000:8000"
+    environment:
+      - DIDCOMM_DB_PATH=/data/didcomm.sqlite
+    volumes:
+      - didcomm-data:/data
+    restart: unless-stopped
+    networks:
+      - c2dta-net
+
+# ============================================================
+# Rede e Volumes
+# ============================================================
+networks:
+  c2dta-net:
+    driver: bridge
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  ditto-mongodb-data:
+  orderer-data:
+  peer0-consortium-data:
+  peer0-oem-data:
+  couchdb0-data:
+  couchdb1-data:
+  ca-consortium-data:
+  ca-oem-data:
+  indy-data:
+  ipfs-data:
+  didcomm-data:

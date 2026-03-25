@@ -14,7 +14,14 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     containerd \
     docker \
     docker-compose \
+<<<<<<< HEAD
     \
+=======
+    didcomm-agent-compose \
+    mosquitto-compose \
+    sd-simulator-compose \
+    egw-controller-compose \
+>>>>>>> 02ed0cf0233d25fdf43da200d6f31c53d0813984
     python3 \
     python3-pip \
     python3-aries-cloudagent \

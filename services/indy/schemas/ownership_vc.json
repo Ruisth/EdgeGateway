@@ -1,0 +1,12 @@
+{
+  "schema_name": "OwnershipCredential",
+  "schema_version": "1.0",
+  "description": "Verifiable Credential de propriedade de um dispositivo. Emitida ao consumidor apos compra ou transferencia. Valida o direito de controlo do DT. Ver paper Seccao 3.2.4 — Consumer Buys Device e 3.2.8 — SD Selling.",
+  "attributes": [
+    "device_uuid",
+    "owner_did",
+    "acquisition_date",
+    "previous_owner_did",
+    "transfer_tx_hash"
+  ]
+}

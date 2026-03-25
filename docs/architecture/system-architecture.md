@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Arquitectura de Sistema — Consumer-Controlled Digital Twin Architecture (C2DTA)
 
 Este documento descreve a arquitectura do Edge Gateway tal como definida no paper:
@@ -174,6 +175,39 @@ DataSet struct {
 | Sensor simulator | Python (heartbeat, geoloc, timestamp @ 1 Hz) | - |
 
 ---
+=======
+# Edge Gateway System Architecture
+
+This document consolidates the macro view, components and non-functional requirements of the Edge Gateway described in `EdgeGateway_Paper.pdf`. It serves as a reference for engineering decisions and must stay aligned with experiments conducted in the lab and in the field.
+
+## Macro view
+1. **IoT devices** – industrial and residential sensors, actuators, wearables and legacy controllers.
+2. **Edge Gateway** – Linux platform (Yocto) with support for OCI containers, AI accelerators and TPM.
+3. **Digital Twin + Blockchain** – smart contracts that store identities, policies and audit data.
+4. **Cloud/Laboratory** – heavy AI pipelines, dashboards and corporate integrations.
+
+```
++-------------+        +-----------------+        +-------------------+
+| IoT         |<-----> | Edge Gateway    |<-----> | Digital Twin /    |
+| devices     |        | (Yocto + OCI)   |        | Blockchain + Cloud|
++-------------+        +-----------------+        +-------------------+
+```
+
+## Core modules
+| Module | Responsibilities | Notes |
+| --- | --- | --- |
+| Gestão de conectividade | Drivers, adaptadores industriais/residenciais, roteamento seguro | Integrar protocolos Modbus, OPC-UA, BLE, Thread, Wi-Fi 6/6E e 5G/LTE. |
+| Barramento de eventos (MQTT) | Eclipse Mosquitto 2.0 com TLS (porta 8883), ACL por dispositivo | QoS 1 para telemetria a 1Hz, tópicos `egw/<uuid>/telemetry`. Ver `docs/architecture/mqtt-architecture.md`. |
+| Digital Twin (Eclipse Ditto) | Plataforma DT com conectividade MQTT e WoT TD | Things `org.c2dta:<uuid>`, features heartbeat/geo/timestamp. Ver `docs/architecture/ditto-architecture.md`. |
+| Blockchain Ecossistema (Fabric) | Hyperledger Fabric 2.5 — ciclo de vida 6 estados, dataset tracking | Chaincodes Go: `device-lifecycle`, `dataset-tracking`. Ver `docs/architecture/fabric-architecture.md`. |
+| Blockchain Identidade (Indy) | Hyperledger Indy (von-network) — DIDs, schemas VC | Enrollment VC, Genesis VC, Ownership VC. Ver `docs/architecture/indy-architecture.md`. |
+| Agentes SSI (ACA-Py) | 5 agentes ACA-Py (1@C, 1@O, 1@A, 1@egw, 1@sd) | Protocolos: OOB, Issue Credential v2, Present Proof v2. Ver `docs/architecture/indy-architecture.md`. |
+| Armazenamento Descentralizado (IPFS) | IPFS Kubo — snapshots DT, CIDs ancorados no Fabric | Ver `docs/architecture/ipfs-architecture.md`. |
+| EGW Controller | Orquestrador central FastAPI — 8 use cases (UC1-UC8) | Coordena Fabric, Ditto, ACA-Py, IPFS, MQTT. Ver `docs/architecture/egw-controller-architecture.md`. |
+| Camada de IA | Inferência local (TensorFlow Lite/ONNX Runtime) com aceleradores (GPU/NPU) | Modelos versionados e atualizados OTA; checkpoints para retomada. |
+| Orquestração de containers | Container engine (Docker/Podman) + sistema supervisor (k3s, systemd, supervisord) | Deve suportar atualizações atômicas e rollback. |
+| Observabilidade e DevSecOps | Telemetria (Prometheus), logs estruturados, tracing, OTA | Integra com CI/CD e políticas de segurança derivadas do ledger. |
+>>>>>>> 02ed0cf0233d25fdf43da200d6f31c53d0813984
 
 ## Requisitos transversais
 
@@ -202,8 +236,12 @@ DataSet struct {
 
 ## Checklist de actualização
 
+<<<<<<< HEAD
 - [ ] Diagrama actualizado após alterações estruturais
 - [ ] Tabela de métricas revista com dados de hardware real
 - [ ] Links para ADRs em `docs/adr/` (a criar)
+=======
+> Última revisão: 2026-03-20
+>>>>>>> 02ed0cf0233d25fdf43da200d6f31c53d0813984
 
 > Última revisão: 2026-03-19

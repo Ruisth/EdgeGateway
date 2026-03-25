@@ -1,0 +1,29 @@
+# =============================================================================
+# Hyperledger Fabric — Crypto Config C2DTA
+# =============================================================================
+# Gera material criptografico (MSP + TLS) para todas as organizacoes.
+# Usado pelo cryptogen tool.
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: c2dta.example.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: Consortium
+    Domain: consortium.c2dta.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1
+
+  - Name: OEM
+    Domain: oem.c2dta.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1

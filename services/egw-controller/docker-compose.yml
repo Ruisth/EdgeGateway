@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  egw-controller:
+    build: .
+    image: edgegateway/egw-controller:dev
+    container_name: egw-controller
+    ports:
+      - "8090:8090"
+    environment:
+      - DITTO_URL=http://nginx:8080
+      - DITTO_USER=ditto
+      - DITTO_PASS=c2dta
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=8883
+      - IPFS_API_URL=http://ipfs:5001
+      - ACAPY_CONSORTIUM_URL=http://acapy-consortium:8021
+      - ACAPY_OEM_URL=http://acapy-oem:8031
+      - ACAPY_EGW_URL=http://acapy-egw:8061
+      - FABRIC_PEER_URL=peer0.consortium.c2dta.org:7051
+      - FABRIC_CHANNEL=c2dta-channel
+      - DIDCOMM_AGENT_URL=http://didcomm-agent:8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - c2dta-net
+
+networks:
+  c2dta-net:
+    external: true

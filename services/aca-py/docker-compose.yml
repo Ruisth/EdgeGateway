@@ -1,0 +1,141 @@
+# =============================================================================
+# ACA-Py — Agentes SSI C2DTA
+# =============================================================================
+# Instancias ACA-Py para cada stakeholder do ecossistema.
+# Ver paper Seccao 3.1 — Agents e notacao RFC 0006.
+
+services:
+  # ---------- 1@C — Agente do Consorcio ----------
+  aca-py-consortium:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-consortium
+    ports:
+      - "8020:8020"    # HTTP endpoint
+      - "8021:8021"    # Admin API
+    environment:
+      - ACAPY_LABEL=C2DTA Consortium (1@C)
+      - ACAPY_ENDPOINT=http://aca-py-consortium:8020
+      - ACAPY_ADMIN=[0.0.0.0,8021]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=consortium-wallet
+      - ACAPY_WALLET_KEY=consortium-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8020
+        --outbound-transport http
+    restart: unless-stopped
+
+  # ---------- 1@O — Agente do OEM ----------
+  aca-py-oem:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-oem
+    ports:
+      - "8030:8030"
+      - "8031:8031"
+    environment:
+      - ACAPY_LABEL=C2DTA OEM (1@O)
+      - ACAPY_ENDPOINT=http://aca-py-oem:8030
+      - ACAPY_ADMIN=[0.0.0.0,8031]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=oem-wallet
+      - ACAPY_WALLET_KEY=oem-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8030
+        --outbound-transport http
+    restart: unless-stopped
+
+  # ---------- 1@A — Agente do Consumidor A ----------
+  aca-py-consumer-a:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-consumer-a
+    ports:
+      - "8040:8040"
+      - "8041:8041"
+    environment:
+      - ACAPY_LABEL=Consumer A (1@A)
+      - ACAPY_ENDPOINT=http://aca-py-consumer-a:8040
+      - ACAPY_ADMIN=[0.0.0.0,8041]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=consumer-a-wallet
+      - ACAPY_WALLET_KEY=consumer-a-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8040
+        --outbound-transport http
+    restart: unless-stopped
+
+  # ---------- 1@egw — Agente do Edge Gateway ----------
+  aca-py-egw:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-egw
+    ports:
+      - "8060:8060"
+      - "8061:8061"
+    environment:
+      - ACAPY_LABEL=Edge Gateway (1@egw)
+      - ACAPY_ENDPOINT=http://aca-py-egw:8060
+      - ACAPY_ADMIN=[0.0.0.0,8061]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=egw-wallet
+      - ACAPY_WALLET_KEY=egw-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8060
+        --outbound-transport http
+    restart: unless-stopped
+
+  # ---------- 1@sd — Agente do Smart Device ----------
+  aca-py-sd:
+    image: ghcr.io/openwallet-foundation/acapy-agent:py3.12-1.2.2
+    container_name: c2dta-aca-py-sd
+    ports:
+      - "8070:8070"
+      - "8071:8071"
+    environment:
+      - ACAPY_LABEL=Smart Device (1@sd)
+      - ACAPY_ENDPOINT=http://aca-py-sd:8070
+      - ACAPY_ADMIN=[0.0.0.0,8071]
+      - ACAPY_ADMIN_INSECURE_MODE=true
+      - ACAPY_WALLET_TYPE=askar
+      - ACAPY_WALLET_NAME=sd-wallet
+      - ACAPY_WALLET_KEY=sd-key-dev
+      - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_LOG_LEVEL=info
+    command: >
+      start
+        --auto-provision
+        --inbound-transport http 0.0.0.0 8070
+        --outbound-transport http
+    restart: unless-stopped

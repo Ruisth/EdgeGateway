@@ -1,0 +1,32 @@
+name: Build Yocto
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "yocto/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Yocto Image
+    runs-on: [self-hosted, yocto]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup build environment
+        run: |
+          source oe-init-build-env build
+          bitbake-layers add-layer ../yocto/layers/meta-edgegateway
+
+      - name: Build edgegateway-image
+        run: |
+          source oe-init-build-env build
+          bitbake edgegateway-image
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: yocto-image
+          path: build/tmp/deploy/images/
+          retention-days: 7

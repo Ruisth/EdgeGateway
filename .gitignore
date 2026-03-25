@@ -11,7 +11,34 @@ yocto/tmp/
 # Python
 __pycache__/
 *.pyc
+*.egg-info/
+dist/
+.pytest_cache/
+.ruff_cache/
 
 # Logs
 *.log
+
+# Fabric crypto material
+services/fabric/organizations/
+services/fabric/channel-artifacts/
+
+# Indy genesis
+services/indy/genesis/
+
+# IPFS data
+services/ipfs/data/
+
+# Mosquitto certs (generated)
+services/mosquitto/certs/*.crt
+services/mosquitto/certs/*.key
+services/mosquitto/certs/*.pem
+services/mosquitto/certs/*.srl
+
+# Docker volumes
+services/*/data/
+
+# Environment
+.env
+*.env.local
 

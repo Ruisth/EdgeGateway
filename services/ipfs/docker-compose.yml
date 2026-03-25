@@ -1,0 +1,28 @@
+# =============================================================================
+# IPFS (Kubo) — Armazenamento Descentralizado C2DTA
+# =============================================================================
+# No IPFS local para armazenamento de snapshots do Digital Twin.
+# Hashes (CIDs) sao ancorados no Hyperledger Fabric via dataset-tracking chaincode.
+# Ver paper Seccao 3.1 — Device Storage.
+
+services:
+  ipfs:
+    image: ipfs/kubo:v0.28.0
+    container_name: c2dta-ipfs
+    ports:
+      - "5001:5001"    # API
+      - "8081:8080"    # Gateway (8081 para nao conflitar com Ditto nginx)
+      - "4001:4001"    # Swarm
+    volumes:
+      - ipfs-data:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ipfs id || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  ipfs-data:
