@@ -1,0 +1,17 @@
+[0] Config.pm:328> INFO - This is Biber 2.21
+[0] Config.pm:331> INFO - Logfile is 'main.blg'
+[63] biber-MSWIN64:342> INFO - === 
+[84] Biber.pm:421> INFO - Reading 'main.bcf'
+[145] Biber.pm:1002> INFO - Found 1 citekeys in bib section 0
+[152] Biber.pm:4487> INFO - Processing section 0
+[159] Biber.pm:4678> INFO - Looking for bibtex file 'references.bib' for section 0
+[194] bibtex.pm:1713> INFO - LaTeX decoding ...
+[246] bibtex.pm:1519> INFO - Found BibTeX data source 'references.bib'
+[254] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[254] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[254] Biber.pm:4307> INFO - Sorting list 'none/global//global/global/global' of type 'entry' with template 'none' and locale 'en-US'
+[254] Biber.pm:4313> INFO - No sort tailoring available for locale 'en-US'
+[254] bbl.pm:676> INFO - Writing 'main.bbl' with encoding 'UTF-8'
+[254] bbl.pm:779> INFO - Output to main.bbl
+[254] Biber.pm:132> WARN - I didn't find a database entry for 'newell:et:al:1958' (section 0)
+[254] Biber.pm:134> INFO - WARNINGS: 1

@@ -1,0 +1,128 @@
+% ============================================================
+%  Chapter 1 — Introduction
+% ============================================================
+\chapter{Introduction}
+\label{ch:introduction}
+
+\noindent The International Data Corporation (IDC)~\cite{idc:2021} estimates that by 2025, \ac{IoT} devices---encompassing machines, sensors, and cameras---will collectively generate 79.4~zettabytes of data.
+Although \acp{SD} can increase consumer well-being~\cite{lee:lee:2020}, they also present significant challenges.
+Sensors invade the consumer privacy sphere, capturing data stored in silos that attract cybercriminals~\cite{weber:2010}, while \acp{OEM} often exploit these data for their own benefit~\cite{zuboff:2019}, leaving consumers without tangible rewards~\cite{spiekermann:korunovska:2017}.
+The framework governing the collection and use of personal data involving consumers and \acp{OEM} to create economic value, known as the \ac{PDE}~\cite{world:economic:forum:2011}, is unbalanced~\cite{ctrl:shift:2014}.
+It allows \acp{OEM} to monopolize data-flow profits while consumers bear the system's externalities, and is therefore associated with a loss of control over personal information~\cite{abiteboul:andre:abiteboul:2015}.
+
+To address this imbalance, industry and academia are exploring blockchain-based \ac{IoT} solutions for people-centered architectures~\cite{samaniego:deters:2017}.
+Blockchain's strong cryptographic foundation, immutable and tamper-proof nature, decentralization, and smart-contract support allow for critical mechanisms that, when integrated with user-centered architectures, elevate consumer status in the \ac{PDE}~\cite{zyskind:nathan:pentland:2015}.
+By leveraging blockchain \ac{DLT}, it is possible to establish a network of trustless peers that collectively agree on an immutable, auditable, and cryptographically secure shared version of the truth~\cite{zheng:xie:dai:chen:wang:2018}.
+This network offers support for decentralized identifiers that link users with their data without the need for third parties~\cite{muhle:suhr:zanker:meinel:2018}.
+When combined with Personal Data Stores, frameworks that allow users to collect, store, manage, and share their data according to their preferences~\cite{deangelis:pieri:2019}, this identity mechanism, referred to as \ac{SSI}~\cite{preukschat:reed:2021}, gives consumers sovereign control over their data.
+When used within a user-centered framework, this mechanism transforms consumers from passive data subjects to active participants in the \ac{PDE}, underscoring the critical role of maintaining data rights---access, usage, and sharing---firmly in the hands of consumers~\cite{janssen:brous:estevez:barbosa:2018}.
+
+The \ac{DT} concept originated at NASA and became publicly recognized in 2003~\cite{grieves:2014}.
+It refers to a virtual representation or digital counterpart of a physical object, system, or process~\cite{minerva:lee:crespi:2020}.
+Since its introduction, the concept has evolved and matured, reaching a significant growth stage by 2014~\cite{grieves:vickers:2017}.
+Transforma Insights~\cite{transforma:insights:2021} forecasts a market size of 24.1~billion devices and a reach of \$1.5~trillion, with the consumer sector accounting for 65\% of all connections.
+\ac{DT} reframes much of the early efforts to develop connected-device solutions, initially based on telemetry and \ac{M2M} communications and later enhanced with \ac{IoT} technologies~\cite{madakam:ramaswamy:tripathi:2015}.
+This evolution has produced a more structured, multifaceted development framework supporting services and \ac{AI}~\cite{minerva:lee:crespi:2020}.
+For instance, a smartwatch with a \ac{DT} extends beyond basic data collection: it continuously gathers and analyzes detailed data to update and refine its virtual model, creating a comprehensive understanding of the user's behaviors, activities, and physiological states.
+
+As \ac{DT} crosses into the consumer realm, it is reasonable to surmise that some \acp{OEM} may exploit the concept of product personalization~\cite{thiesse:2007} or other features with disproportionately lower impact for consumers to gain further consumer insights with \ac{DT}-based solutions.
+Therefore, it is vital to develop mechanisms that enable consumers to control their devices' \acp{DT}~\cite{kopponen:hahto:kettunen:etal:2022}.
+Tesla is a paradigmatic example of the urgent need for such mechanisms: its trillion-dollar valuation~\cite{tesla:marketcap:2024} is supported by its ability to leverage \acp{DT} to train its Full Self-Driving feature~\cite{karpathy:matroid:2020,tesla:ai:day:2021}.
+
+%--------------------------------------------------------------
+\section{Problem Statement}
+\label{sec:problem}
+%--------------------------------------------------------------
+
+\noindent The economic fairness challenge in controlling \acp{DT} arises from the current cloud-based approach, where \acp{OEM} retain \emph{de facto} control over the \ac{DT} and the associated consumer-generated data~\cite{hummel:braun:dabrock:2021}.
+As consumers become more aware of the growing value of data, they are likely to demand solutions that restore control and ensure equitable participation.
+
+Furthermore, proponents of edge computing, federated learning, and privacy-preservation methods such as homomorphic encryption emphasize the benefits of storing and processing data at the edge as a mechanism to improve the privacy and security of \ac{AI} training data within \ac{IoT} contexts~\cite{idc:ai:2024,shi:cao:zhang:li:xu:2016,mcmahan:moore:ramage:hampson:arcas:2017,yang:liu:chen:tian:2019,li:sahu:talwalkar:smith:2020}.
+However, these works often overlook the critical step of ensuring that data are kept at the edge in a self-sovereign manner under consumer control.
+
+This dissertation addresses these challenges by presenting the \ac{C2DTA}.
+The main objective of \ac{C2DTA} is to empower consumers in the \ac{PDE} by shifting the \ac{DT} from the cloud under \ac{OEM} control to the edge under consumer control~\cite{spiekermann:korunovska:boenisch:2019}.
+This shift makes consumers \emph{de facto} controllers---meaning they have actual control in practice~\cite{finck:2018}---of their \ac{SD} data by giving them effective control over the \ac{DT} and its associated data~\cite{de:hert:papakonstantinou:2016}.
+
+\ac{C2DTA} addresses two key challenges:
+\begin{enumerate}
+    \item \textbf{Economic fairness through the control of \acp{DT}.} The current cloud-based approach allows \acp{OEM} to retain \emph{de facto} control over the \ac{DT} and associated consumer-generated data. \ac{C2DTA} restores consumer sovereignty by hosting the \ac{DT} at the edge.
+    \item \textbf{Bridging the edge-computing gap.} \ac{C2DTA} provides the practical foundation necessary for self-sovereign, edge-based data management, closing the gap between proposals for edge computing, federated learning, and privacy-preserving technologies and their actionable implementation.
+\end{enumerate}
+
+%--------------------------------------------------------------
+\section{Research Objectives}
+\label{sec:objectives}
+%--------------------------------------------------------------
+
+\noindent Building on the problem statement, this dissertation pursues the following research objectives:
+
+\begin{description}
+    \item[RO1.] \textbf{Self-sovereign \ac{DT} ecosystem architecture.} Propose an architecture that enables stakeholders of the digital-twinned \ac{SD} ecosystem to securely manage \acp{DT} and leverage their data. In this architecture, those who own devices control the associated \acp{DT} at the edge, and stakeholders transact in a decentralized, self-sovereign, and secure manner.
+
+    \item[RO2.] \textbf{\ac{DT}, \ac{SSI}, and blockchain integration taxonomy.} Propose a structured framework for consistently evaluating conceptual and practical implementations, enabling clear classification, identifying research gaps, and guiding future development in decentralized systems.
+
+    \item[RO3.] \textbf{Hyperledger Fabric, Indy, and Aries integration.} Propose an architecture that integrates Hyperledger Fabric for managing \acp{SD} and datasets with Hyperledger Aries for overseeing stakeholder identifiers, \acp{VC}, and secure communication protocols through ACA-Py. This integration encompasses eight detailed use cases across the full \ac{SD} lifecycle---manufacturing, sale, ownership transfer, twinning, and untwinning.
+
+    \item[RO4.] \textbf{Future innovation for consumer empowerment.} Introduce concepts emerging from the architecture, including ``data-only \acp{DT}'' and the aggregation of several consumer-controlled \acp{DT} into the Consumer-Controlled Personal Digital Twin (\ac{C2PDT}).
+\end{description}
+
+%--------------------------------------------------------------
+\section{Research Methodology}
+\label{sec:methodology}
+%--------------------------------------------------------------
+
+\noindent This dissertation adopts \ac{DSR} as its overarching research methodology.
+\ac{DSR} is a problem-solving paradigm rooted in engineering and the sciences of the artificial~\cite{simon:1996} that seeks to extend the boundaries of human and organizational capabilities by creating new and innovative artifacts~\cite{hevner:march:park:ram:2004}.
+
+Following the \ac{DSR} methodology process model proposed by Peffers et al.~\cite{peffers:tuunanen:rothenberger:chatterjee:2007}, the research proceeds through six activities:
+
+\begin{enumerate}
+    \item \textbf{Problem identification and motivation.} The imbalanced \ac{PDE}, where \acp{OEM} monopolize consumer data generated by \acp{SD}, is identified as the core problem (Chapter~\ref{ch:introduction}).
+    \item \textbf{Objectives of a solution.} The research objectives (RO1--RO4) define what the artifact must achieve (Section~\ref{sec:objectives}).
+    \item \textbf{Design and development.} The \ac{C2DTA} architecture is designed and implemented as the research artifact, integrating \ac{DT}, \ac{SSI}, and blockchain technologies (Chapter~\ref{ch:architecture}).
+    \item \textbf{Demonstration.} The architecture is demonstrated through a business scenario that tracks the lifecycle of a smartwatch equipped with a heartbeat sensor, from manufacture to purchase, twinning, and resale, encompassing eight use cases (Chapter~\ref{ch:results}).
+    \item \textbf{Evaluation.} Feasibility testing confirms that \ac{C2DTA} effectively empowers consumers to manage their \ac{SD} \acp{DT} and associated data. Performance benchmarks assess the impact of the decentralized infrastructure (Chapter~\ref{ch:results}).
+    \item \textbf{Communication.} The results are communicated through this dissertation and the accompanying publication~\cite{pinto:silva:moro:aquino:2025}.
+\end{enumerate}
+
+The artifact type is an \emph{instantiation}, as defined by March and Smith~\cite{march:smith:1995}: a working system that demonstrates that constructs, models, and methods can be implemented, enabling concrete assessment of the artifact's suitability to its intended purpose.
+
+A problem-centered approach~\cite{peffers:tuunanen:rothenberger:chatterjee:2007} is adopted, as the research originates from the observation of the imbalanced \ac{PDE} and the need to empower consumers with control over their \acp{SD}' \acp{DT}.
+
+To ground the state of the art, a \ac{SLR} is conducted following the PRISMA guidelines~\cite{moher:liberati:tetzlaff:etal:2010} and the methodology proposed by Kitchenham and Charters~\cite{kitchenham:charters:2007}.
+The \ac{SLR} methodology, detailed in Chapter~\ref{ch:state-of-art}, systematically identifies, evaluates, and synthesizes existing research on the integration of \acp{DT}, \ac{SSI}, and blockchain.
+
+%--------------------------------------------------------------
+\section{Contributions}
+\label{sec:contributions}
+%--------------------------------------------------------------
+
+\noindent This dissertation makes four main contributions:
+
+\begin{enumerate}
+    \item \textbf{Self-sovereign \ac{DT} ecosystem architecture.} An architecture that enables stakeholders to securely manage \acp{DT} and leverage their data. Device owners control the associated \acp{DT} at the edge, and stakeholders transact in a decentralized, self-sovereign, and secure manner. The architecture further explores its impact on the \ac{PDE} and the business strategies to support it.
+
+    \item \textbf{\ac{DT}, \ac{SSI}, and blockchain integration taxonomy.} A structured framework for consistently evaluating conceptual and practical implementations of \ac{DT}--\ac{SSI}--blockchain systems. The taxonomy classifies systems along three dimensions: \ac{DT} implementation level (simplified vs.\ comprehensive), \ac{SSI} implementation level (partial vs.\ full), and blockchain ecosystem implementation level (absent vs.\ partial vs.\ integrated).
+
+    \item \textbf{Hyperledger Fabric, Indy, and Aries with ACA-Py integration.} An architecture that integrates Hyperledger Fabric for managing \acp{SD} and datasets with Hyperledger Aries for stakeholder identifiers, \acp{VC}, and secure communication protocols. The integration encompasses eight use cases across 88 steps, including automation mechanisms to safeguard ecosystem integrity.
+
+    \item \textbf{Future innovation for consumer empowerment.} The introduction of ``data-only \acp{DT}'' and the aggregation of several consumer-controlled \acp{DT} into the \ac{C2PDT}, positioning consumer-controlled Personal Digital Twins as pivotal in empowering individuals in the \ac{AI} era.
+\end{enumerate}
+
+%--------------------------------------------------------------
+\section{Document Structure}
+\label{sec:structure}
+%--------------------------------------------------------------
+
+\noindent This dissertation is organized as follows:
+
+\begin{description}
+    \item[Chapter~\ref{ch:state-of-art} --- State of the Art.] Presents the \ac{SLR} on the convergence of \ac{DT}, \ac{SSI}, and blockchain. Covers \ac{DT} concepts, \ac{SSI} standards, blockchain for \ac{IoT}, the \ac{PDE}, and data sovereignty. Analyzes related work and identifies research gaps.
+
+    \item[Chapter~\ref{ch:architecture} --- \ac{C2DTA} Architecture.] Introduces the \ac{C2DTA} design, detailing the integrated technologies---Eclipse Ditto, Hyperledger Fabric, Hyperledger Indy, ACA-Py, \ac{IPFS}, \ac{MQTT}, and \ac{DIDComm}---and the eight use cases that cover the full \ac{SD} lifecycle.
+
+    \item[Chapter~\ref{ch:results} --- Results and Discussion.] Presents the implementation, the smartwatch case study, feasibility testing, and performance benchmarks. Discusses the architecture's impact on the \ac{PDE} and business strategies.
+
+    \item[Chapter~\ref{ch:conclusions} --- Conclusions and Future Work.] Summarizes the findings, discusses limitations, and outlines future research directions, including the \ac{C2PDT} concept and its role in the \ac{AI} era.
+\end{description}

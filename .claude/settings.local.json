@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdftotext \"c:/Users/ruimf/Documents/EdgeGateway-1/.claude/worktrees/flamboyant-cray/uni/paper/EdgeGateway_Paper.pdf\" -)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Bash(pdftotext \"c:/Users/ruimf/Documents/EdgeGateway-1/.claude/worktrees/flamboyant-cray/uni/study_material/$f.\"*.pdf -)"
+    ]
+  }
+}
