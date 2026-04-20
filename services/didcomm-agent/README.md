@@ -1,6 +1,12 @@
-# DIDComm Agent Service
+# DIDComm Agent Service — Protótipo Experimental
 
-Protótipo do agente DIDComm do Edge Gateway. Implementa um MVP para troca de mensagens seguras entre o Edge Gateway e o Digital Twin usando X25519 (acordo de chaves), ChaCha20-Poly1305 (criptografia autenticada) e envelopes compatíveis com DIDComm v2.
+> **ATENÇÃO**: Este serviço é um **protótipo experimental de criptografia** (proof-of-concept) e **não representa o stack definitivo do paper C2DTA**.
+>
+> O stack definitivo usa **Hyperledger Aries / ACA-py** com **DIDComm v2**, **Hyperledger Indy** (Identity Ledger) e **Aries RFCs** (0434 OOB, 0453 Issue Credential, 0454 Present Proof, 0509 Action Menu, etc.).
+>
+> Este protótipo serve para explorar primitivas criptográficas (X25519, ChaCha20-Poly1305) de forma isolada. Para implementação dos 8 cenários funcionais C2DTA, usar o agent ACA-py em `services/aries-egw-agent/` (a criar na Fase 1).
+
+Implementa um MVP para troca de mensagens seguras entre o Edge Gateway e o Digital Twin usando X25519 (acordo de chaves), ChaCha20-Poly1305 (criptografia autenticada) e envelopes compatíveis com DIDComm v2.
 
 ## Estrutura
 ```
@@ -78,12 +84,21 @@ docker run --rm -p 8000:8000 ^
 - Sem anexos DIDComm, revogação ou reenvio offline garantido (fila básica apenas).
 - libsodium precisa estar instalado (já incluído nas dependências do projeto).
 
-## Próximos passos
-1. Integrar armazenamento de chaves via TPM/HSM.
-2. Adicionar autenticação/autorização (mTLS, OAuth2 ou tokens emitidos pelo ledger).
-3. Suporte a anexos DIDComm e filas confiáveis para reenvio offline.
-4. Criar receitas Yocto/containers para deployment automatizado no Edge Gateway.
-5. Automatizar hardening (CIS Docker benchmark, dependabot, varredura SAST/DAST).
+## Relação com o stack C2DTA
 
-> Última revisão: 2025-11-18
+| Aspecto | Este protótipo | Stack definitivo (paper) |
+| --- | --- | --- |
+| Framework | FastAPI custom | Hyperledger Aries / ACA-py |
+| Criptografia | X25519 + ChaCha20-Poly1305 | DIDComm v2 (ECDH-1PU / anoncrypt) |
+| Identity Ledger | Nenhum (in-memory) | Hyperledger Indy |
+| Verifiable Credentials | Não suportado | AnonCreds / W3C VC |
+| Aries RFCs | Não suportado | 0434, 0453, 0454, 0509, 0046... |
+| Mediators | Não suportado | RFC 0046 |
+| Goal codes | Não suportado | c2dt.consortium.* |
+
+## Próximos passos (stack definitivo)
+
+Ver `docs/roadmaps/milestone-plan.md` — Fase 1 inclui setup do agente ACA-py para o EGW com todos os Aries RFCs necessários para os 8 cenários C2DTA.
+
+> Última revisão: 2026-03-19
 

@@ -1,3 +1,181 @@
+<<<<<<< HEAD
+# Arquitectura de Sistema — Consumer-Controlled Digital Twin Architecture (C2DTA)
+
+Este documento descreve a arquitectura do Edge Gateway tal como definida no paper:
+> Pinto et al., *"Consumer-Controlled Digital Twin Architecture"*, Blockchain: Research and Applications, 2025. DOI: 10.1016/j.bcra.2025.100342
+
+---
+
+## 5 Camadas C2DTA (Figura 9 do paper)
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  BUSINESS EDGE                                                        │
+│  Consortium (SSIaaS provider) · OEM agents (ACA-py, cloud)           │
+│  SSIaaS: Digital Wallet providers · Mediator services                │
+├──────────────────────────────────────────────────────────────────────┤
+│  ECOSYSTEM LAYER                                                      │
+│  Consortium Marketing Website · Decentralized Marketplace App        │
+├──────────────────────────────────────────────────────────────────────┤
+│  PEER-TO-PEER LAYER                                                   │
+│  DIDComm v2 (Hyperledger Aries RFCs)                                 │
+│  OOB invitations · Goal codes · Action menus · Credential exchange   │
+├──────────────────────────────────────────────────────────────────────┤
+│  RECORDS LAYER                                                        │
+│  Ecosystem Ledger (Hyperledger Fabric) ← device lifecycle + datasets │
+│  Identity Ledger (Hyperledger Indy)   ← DIDs + VCs                  │
+│  Decentralized Storage (IPFS)         ← dataset files (off-chain)   │
+├──────────────────────────────────────────────────────────────────────┤
+│  CONSUMER EDGE                                                        │
+│  Edge Gateway (EGW) · Smart Device (SD) · Digital Twin (Ditto)      │
+│  EGW hosts: ACA-py agent · Eclipse Ditto · Eclipse Mosquitto         │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Tipos de dispositivos
+
+### Edge Gateway (EGW)
+- Plataforma Linux embarcada (Yocto Project + OCI containers)
+- **Funções**:
+  1. Hub de conectividade — liga SDs ao ecossistema via DIDComm
+  2. Hospeda o Digital Twin platform (Eclipse Ditto 3.0)
+  3. Corre o broker MQTT (Eclipse Mosquitto 2.0) para dados de sensores
+  4. Interface com Ecosystem Ledger (Hyperledger Fabric) — actualizações de estado
+  5. Interface com Identity Ledger (Hyperledger Indy) — emissão/verificação de VCs
+  6. Transfere datasets históricos para IPFS em intervalos configuráveis
+- **Identidade**: gera DID público no 1.º boot; âncora na Identity Ledger
+- **Agent notation**: `1@egw` (SSI notation per Aries RFC 0006)
+
+### Smart Device (SD)
+- Qualquer dispositivo IoT com firmware C2DTA
+- Gera UUID no 1.º boot
+- Corre agente SSI (ACA-py) com mediator service na cloud
+- Transmite dados de sensores via MQTT/SSL para o EGW
+- Possui QR code com OOB URI para o seu agente
+- **Agent notation**: `1@sd`, mediator: `2@sd`
+
+---
+
+## Ciclo de vida do Smart Device (6 estados)
+
+```
+              Register (1st boot)
+Manufactured ──────────────────> Available
+                                     │
+                              Sold   │
+                                     ▼
+                               In-Transit
+                                     │
+                              Claim  │
+                                     ▼
+                                 Claimed
+                                     │
+                              Twin   │  Untwin
+                                     ▼         \
+                                  Twinned ──────> Claimed
+                                     │
+                           End-of-life│
+                                     ▼
+                              Decommissioned
+```
+
+| Estado | Trigger | Actor | Ledger update |
+| --- | --- | --- | --- |
+| Manufactured | 1.º boot + Genesis VC | OEM | `status: AVAILABLE` |
+| Available | SD registada → listada para venda | OEM | marketplace listing |
+| In-Transit | Venda concluída, Ownership VC emitida | OEM | `status: IN-TRANSIT` |
+| Claimed | Consumidor valida Ownership VC + Genesis VC | EGW | `status: CLAIMED, controllerId` |
+| Twinned | Consumidor inicia twinning (WoT + MQTT) | EGW | `status: TWINNED` |
+| Decommissioned | Fim de vida | EGW / Consortium | `status: DECOMMISSIONED` |
+
+---
+
+## Verifiable Credentials
+
+| VC | Emissor | Portador | Atributos principais |
+| --- | --- | --- | --- |
+| **Enrollment VC** | Consortium agent (`1@C`) | OEM agent (`1@O`) | `name`, `type: OEM`, `enrollDate` |
+| **Genesis VC** | OEM agent (`1@O`) | EGW / SD agent | `deviceId`, `deviceModelId`, `manufacturerDate` |
+| **Ownership VC** | OEM / EGW agent | Consumer agent (`1@A`) | `deviceId`, `deviceModelId`, `acquisitionDate` |
+
+---
+
+## Estruturas de dados no Ecosystem Ledger (Hyperledger Fabric)
+
+```go
+DeviceModel struct {
+    name          string
+    deviceModelId string
+    description   string
+    features      []string
+    timestamp     time.Time
+}
+
+Device struct {
+    deviceId          string
+    controllerId      string
+    deviceModelId     string
+    type              string  // "EDGE_GATEWAY" | "SMART_DEVICE"
+    status            string  // 6-state lifecycle
+    OTId              string
+    allowedTransactions []string
+    timestamp         time.Time
+}
+
+Transaction struct {
+    type      string  // "sale", etc.
+    details   []string
+    timestamp time.Time
+}
+
+DataSet struct {
+    datasetId    string
+    datasetURL   string  // IPFS CID
+    id           string
+    controllerId string
+    deviceId     string
+    hash         string
+    timestamp    time.Time
+}
+```
+
+---
+
+## Agentes SSI (Aries RFC 0006 notation)
+
+| Notação | Actor | Tipo | Hospedagem |
+| --- | --- | --- | --- |
+| `1@C` | Consortium agent | Self-sovereign | Cloud (Consortium) |
+| `1@O` | OEM agent | Self-sovereign | Cloud (OEM) |
+| `1@D` | OEM employee (Dave) | Self-sovereign | Mobile wallet |
+| `1@A` / `1@B` | Consumer agents (Alice, Bob) | Self-sovereign | Mobile wallet + mediator |
+| `2@A` | Alice cloud agent | Mediator | SSIaaS provider |
+| `1@egw` | EGW agent | Non-self-sovereign | Consumer edge (EGW) |
+| `2@egw` | EGW mediator agent | Mediator | SSIaaS provider |
+| `1@sd` | SD agent | Non-self-sovereign | Smart Device |
+| `2@sd` | SD mediator agent | Mediator | SSIaaS provider |
+
+---
+
+## Stack de implementação
+
+| Componente | Tecnologia | Versão |
+| --- | --- | --- |
+| Digital Twin platform | Eclipse Ditto | 3.0.0 |
+| MQTT broker | Eclipse Mosquitto | 2.0.15 |
+| Ecosystem ledger | Hyperledger Fabric | 2.x |
+| Identity ledger | Hyperledger Indy | BC Gov Test Network |
+| SSI agents | ACA-py (Hyperledger Aries) | latest |
+| Decentralized storage | IPFS (Kubo) | latest |
+| Device definition | W3C WoT Thing Description | 1.1 |
+| OS base | Yocto Project (Kirkstone) | 4.0 |
+| Container runtime | Docker / Podman | - |
+| Sensor simulator | Python (heartbeat, geoloc, timestamp @ 1 Hz) | - |
+
+---
+=======
 # Edge Gateway System Architecture
 
 This document consolidates the macro view, components and non-functional requirements of the Edge Gateway described in `EdgeGateway_Paper.pdf`. It serves as a reference for engineering decisions and must stay aligned with experiments conducted in the lab and in the field.
@@ -29,32 +207,41 @@ This document consolidates the macro view, components and non-functional require
 | Camada de IA | Inferência local (TensorFlow Lite/ONNX Runtime) com aceleradores (GPU/NPU) | Modelos versionados e atualizados OTA; checkpoints para retomada. |
 | Orquestração de containers | Container engine (Docker/Podman) + sistema supervisor (k3s, systemd, supervisord) | Deve suportar atualizações atômicas e rollback. |
 | Observabilidade e DevSecOps | Telemetria (Prometheus), logs estruturados, tracing, OTA | Integra com CI/CD e políticas de segurança derivadas do ledger. |
+>>>>>>> 02ed0cf0233d25fdf43da200d6f31c53d0813984
 
 ## Requisitos transversais
-- **Segurança**: boot seguro, criptografia de disco, gestão de certificados via TPM/HSM, mTLS em todos os serviços e política de rotação automática de chaves.
-- **Confiabilidade**: watchdogs de software/hardware, atualizações A/B (swupdate ou Mender), detecção de auto-recuperação e limites de uso de recursos.
-- **Gerenciamento remoto**: APIs para provisionamento, configuração, coleta de inventário e atualizações OTA controladas.
-- **Compliance**: aderência a LGPD/GDPR com retenção seletiva e trilhas de auditoria assinadas na blockchain.
 
-## Critérios de desempenho
-| Métrica | Meta inicial | Notas |
+- **Segurança**: boot seguro, TPM para armazenamento de chaves, mTLS entre serviços, MQTT sobre SSL
+- **Identidade**: DIDs auto-gerados no 1.º boot, sem dependência de identidades pré-configuradas pelo fabricante
+- **Privacidade**: dados permanecem no consumer edge; apenas hashes dos datasets são ancorados no Fabric
+- **Compliance**: GDPR/LGPD — dados não saem do edge sem consentimento explícito do consumidor
+- **Auditabilidade**: todas as transacções de ciclo de vida registadas no Ecosystem Ledger (imutável)
+
+---
+
+## Critérios de desempenho (benchmarks do paper)
+
+| Operação | Tempo medido | Notas |
 | --- | --- | --- |
-| Latência de inferência | < 100 ms para modelos críticos | Medida do evento MQTT ao comando aplicado. |
-| Disponibilidade do broker | >= 99,5% | Exige replicação ativa/passiva e detecção de falhas. |
-| Tempo de sincronização do Twin | < 5 s para estados críticos | Depende do SLA da blockchain escolhida. |
-| Consumo máximo de CPU | < 75% em operação nominal | Garante headroom para bursts e OTA. |
+| Ligação OOB DIDComm | ~50 ms | Sem acesso ao ledger |
+| Ligação implícita (resolve DIDDoc) | ~1.7 s | Requer acesso ao Identity Ledger |
+| Criação de DID público | ~1.3 s | Operação criptográfica + ledger |
+| Escrita no Ecosystem Ledger (Fabric) | ~2 s | Operação mais lenta (ledger write) |
+| Emissão de VC | ~1 s | Assinatura digital |
+| Boot Eclipse Ditto | ~38 s | Apenas no 1.º twinning |
+| Configuração MQTT client | ~66 s | Apenas no 1.º twinning |
+| Latência máxima adicionada por DIDComm | < 2 s | Aceitável para interacções com utilizador |
 
-## Roadmap técnico (alto nível)
-1. **BSP e hardware** – validar suporte a TPM, aceleração de IA e conectividade (Fase 0 do roadmap).
-2. **Base Yocto** – consolidar `meta-edgegateway`, configurar `edgegateway-image` e automatizar builds.
-3. **Pipelines CI/CD** – executar testes de integração de containers, inferência e contratos inteligentes.
-4. **Observabilidade** – instrumentar métrica/log/tracing e conectar dashboards.
-5. **Documentação viva** – manter diagramas PlantUML/Draw.io em `docs/architecture/diagrams/` (a criar) com versão controlada.
+---
 
-## Checklist de atualização do documento
-- [ ] Diagrama atualizado após cada alteração estrutural significativa.
-- [ ] Tabela de métricas revisada quando novos SLAs forem definidos.
-- [ ] Links para decisões de arquitetura registrados na pasta `docs/adr/` (a ser criada).
+## Checklist de actualização
 
+<<<<<<< HEAD
+- [ ] Diagrama actualizado após alterações estruturais
+- [ ] Tabela de métricas revista com dados de hardware real
+- [ ] Links para ADRs em `docs/adr/` (a criar)
+=======
 > Última revisão: 2026-03-20
+>>>>>>> 02ed0cf0233d25fdf43da200d6f31c53d0813984
 
+> Última revisão: 2026-03-19
