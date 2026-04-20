@@ -270,7 +270,7 @@ Nota importante: `services/didcomm-agent/data/didcomm.sqlite` e `services/didcom
 | `services/ditto/nginx/nginx.conf` | Reverse proxy do Ditto com auth e encaminhamento de endpoints. | Sempre que se usa `http://localhost:8080`. | Esconde a topologia interna dos servicos Ditto. |
 | `services/ditto/nginx/nginx.htpasswd` | Credenciais hash para acesso dev ao nginx do Ditto. | Na autenticacao basic auth. | Adequado para laboratorio; nao para producao. |
 | `services/ditto/tests/test_ditto_api.py` | Testes de integracao CRUD sobre a API Ditto. | Na validacao do twin. | Prova criacao, leitura e atualizacao de properties. |
-| `services/ditto/wot/smartwatch-td.jsonld` | Thing Description W3C do smartwatch. | Em modelacao do device e do twin. | Diz que propriedades o dispositivo expone no modelo. |
+| `services/ditto/wot/smartwatch-td.jsonld` | Thing Description W3C do smartwatch. | Em modelacao do device e do twin. | Diz que propriedades o dispositivo expoe no modelo. |
 
 ## 6.6 `services/egw-controller/`
 
