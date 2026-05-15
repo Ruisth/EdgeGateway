@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 
 from egw_controller.clients.aca_py_client import AcaPyClient
 from egw_controller.clients.ditto_client import DittoClient

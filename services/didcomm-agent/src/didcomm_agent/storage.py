@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import sqlite3
-from dataclasses import asdict
 from pathlib import Path
-from typing import Optional
 
 from .crypto import KeyPair, keypair_from_private_b64
 from .service import DIDCommInvitation
@@ -51,7 +48,7 @@ class Storage:
         finally:
             conn.close()
 
-    def upsert_agent(self, agent_id: str, did: str, endpoint: str, label: Optional[str], keypair: KeyPair) -> None:
+    def upsert_agent(self, agent_id: str, did: str, endpoint: str, label: str | None, keypair: KeyPair) -> None:
         conn = self._connect()
         try:
             cur = conn.cursor()
@@ -67,7 +64,7 @@ class Storage:
         finally:
             conn.close()
 
-    def get_agent(self, agent_id: str) -> Optional[tuple[str, str, Optional[str], KeyPair]]:
+    def get_agent(self, agent_id: str) -> tuple[str, str, str | None, KeyPair] | None:
         conn = self._connect()
         try:
             cur = conn.cursor()

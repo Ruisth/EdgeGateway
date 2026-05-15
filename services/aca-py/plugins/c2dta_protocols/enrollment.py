@@ -13,10 +13,8 @@ Ver paper Seccao 3.2.1 — OEM Enrollment.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
-
-from c2dta_protocols.goal_codes import ENROLL_OEM
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +45,7 @@ async def handle_enrollment_request(
                 {"name": "organization_name", "value": organization_name},
                 {"name": "organization_did", "value": organization_did},
                 {"name": "role", "value": "OEM"},
-                {"name": "enrollment_date", "value": datetime.now(timezone.utc).isoformat()},
+                {"name": "enrollment_date", "value": datetime.now(UTC).isoformat()},
                 {"name": "consortium_id", "value": consortium_id},
                 {"name": "expiry_date", "value": ""},
             ],

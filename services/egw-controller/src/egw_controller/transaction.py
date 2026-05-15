@@ -8,12 +8,11 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Optional
+from datetime import UTC, datetime
+from enum import StrEnum
 
 
-class StepStatus(str, Enum):
+class StepStatus(StrEnum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -27,10 +26,10 @@ class TransactionStep:
     step_id: str
     description: str
     status: StepStatus = StepStatus.PENDING
-    result: Optional[dict] = None
-    error: Optional[str] = None
-    started_at: Optional[str] = None
-    completed_at: Optional[str] = None
+    result: dict | None = None
+    error: str | None = None
+    started_at: str | None = None
+    completed_at: str | None = None
 
 
 @dataclass
@@ -42,7 +41,7 @@ class Transaction:
     device_id: str = ""
     steps: list[TransactionStep] = field(default_factory=list)
     created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
     status: StepStatus = StepStatus.PENDING
 
@@ -55,7 +54,7 @@ class Transaction:
         for step in self.steps:
             if step.step_id == step_id:
                 step.status = StepStatus.IN_PROGRESS
-                step.started_at = datetime.now(timezone.utc).isoformat()
+                step.started_at = datetime.now(UTC).isoformat()
                 self.status = StepStatus.IN_PROGRESS
                 return
 
@@ -64,7 +63,7 @@ class Transaction:
             if step.step_id == step_id:
                 step.status = StepStatus.COMPLETED
                 step.result = result
-                step.completed_at = datetime.now(timezone.utc).isoformat()
+                step.completed_at = datetime.now(UTC).isoformat()
                 # Verificar se todos os passos estao completos
                 if all(s.status == StepStatus.COMPLETED for s in self.steps):
                     self.status = StepStatus.COMPLETED
@@ -75,7 +74,7 @@ class Transaction:
             if step.step_id == step_id:
                 step.status = StepStatus.FAILED
                 step.error = error
-                step.completed_at = datetime.now(timezone.utc).isoformat()
+                step.completed_at = datetime.now(UTC).isoformat()
                 self.status = StepStatus.FAILED
                 return
 

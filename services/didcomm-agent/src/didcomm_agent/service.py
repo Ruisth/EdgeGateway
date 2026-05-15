@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Dict, Iterable
 
 from .crypto import (
     KeyPair,
-    derive_shared_key,
     decrypt,
+    derive_shared_key,
     encrypt,
     generate_keypair,
     load_public_key,
@@ -48,7 +48,7 @@ class DIDCommAgent:
         self.endpoint = endpoint
         self.label = label or did
         self._keypair = keypair or generate_keypair()
-        self._peers: Dict[str, _Peer] = {}
+        self._peers: dict[str, _Peer] = {}
 
     @property
     def public_key_b64(self) -> str:
@@ -117,7 +117,7 @@ class DIDCommAgent:
         )
 
     def _build_aad(self, message: DIDCommMessage) -> bytes:
-        return f"{message.frm}|{message.to}|{message.created_time}".encode("utf-8")
+        return f"{message.frm}|{message.to}|{message.created_time}".encode()
 
     def _build_aad_from_envelope(self, envelope: EncryptedDIDCommMessage) -> bytes:
-        return f"{envelope.frm}|{envelope.to}|{envelope.created_time}".encode("utf-8")
+        return f"{envelope.frm}|{envelope.to}|{envelope.created_time}".encode()

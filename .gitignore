@@ -8,6 +8,9 @@ yocto/tmp/
 # VSCode
 .vscode/settings.local.json
 
+# Claude Code local config
+.claude/settings.local.json
+
 # Python
 __pycache__/
 *.pyc
@@ -35,10 +38,29 @@ services/mosquitto/certs/*.key
 services/mosquitto/certs/*.pem
 services/mosquitto/certs/*.srl
 
-# Docker volumes
+# Ditto nginx auth (generated locally; see nginx.htpasswd.example)
+services/ditto/nginx/nginx.htpasswd
+
+# Docker volumes / runtime state
 services/*/data/
+*.sqlite
+*.sqlite-journal
 
 # Environment
 .env
 *.env.local
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+*.synctex.gz
 

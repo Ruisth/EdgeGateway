@@ -12,7 +12,7 @@ Ver paper Seccao 3.2.3 — Device Self-Registration.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ async def handle_genesis_request(
                 {"name": "device_uuid", "value": device_uuid},
                 {"name": "model_id", "value": model_id},
                 {"name": "manufacturer_did", "value": manufacturer_did},
-                {"name": "manufacture_date", "value": datetime.now(timezone.utc).isoformat()},
+                {"name": "manufacture_date", "value": datetime.now(UTC).isoformat()},
                 {"name": "firmware_version", "value": firmware_version},
                 {"name": "wot_td_hash", "value": wot_td_hash},
                 {"name": "serial_number", "value": serial_number},

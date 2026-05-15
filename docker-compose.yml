@@ -151,7 +151,7 @@ services:
     container_name: c2dta-ditto-gateway
     environment:
       - ENABLE_DUMMY_AUTH=true
-      - DEVOPS_PASSWORD=c2dta-devops
+      - DEVOPS_PASSWORD=${DITTO_DEVOPS_PASSWORD:?DITTO_DEVOPS_PASSWORD not set; copy .env.example to .env}
       - BIND_HOSTNAME=0.0.0.0
       - INSTANCE_INDEX=1
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
@@ -224,8 +224,8 @@ services:
     image: couchdb:3.3
     container_name: c2dta-couchdb0
     environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=adminpw
+      - COUCHDB_USER=${COUCHDB_USER:?COUCHDB_USER not set; copy .env.example to .env}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:?COUCHDB_PASSWORD not set; copy .env.example to .env}
     volumes:
       - couchdb0-data:/opt/couchdb/data
     restart: unless-stopped
@@ -253,8 +253,8 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${COUCHDB_USER:?COUCHDB_USER not set; copy .env.example to .env}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD:?COUCHDB_PASSWORD not set; copy .env.example to .env}
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
       - ./services/fabric/organizations/peerOrganizations/consortium.c2dta.example.com/peers/peer0.consortium.c2dta.example.com/msp:/etc/hyperledger/fabric/msp
@@ -272,8 +272,8 @@ services:
     image: couchdb:3.3
     container_name: c2dta-couchdb1
     environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=adminpw
+      - COUCHDB_USER=${COUCHDB_USER:?COUCHDB_USER not set; copy .env.example to .env}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:?COUCHDB_PASSWORD not set; copy .env.example to .env}
     volumes:
       - couchdb1-data:/opt/couchdb/data
     restart: unless-stopped
@@ -301,8 +301,8 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${COUCHDB_USER:?COUCHDB_USER not set; copy .env.example to .env}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD:?COUCHDB_PASSWORD not set; copy .env.example to .env}
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
       - ./services/fabric/organizations/peerOrganizations/oem.c2dta.example.com/peers/peer0.oem.c2dta.example.com/msp:/etc/hyperledger/fabric/msp
@@ -419,7 +419,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=consortium-wallet
-      - ACAPY_WALLET_KEY=consortium-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_CONSORTIUM_WALLET_KEY:?ACAPY_CONSORTIUM_WALLET_KEY not set; copy .env.example to .env}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
@@ -450,7 +450,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=oem-wallet
-      - ACAPY_WALLET_KEY=oem-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_OEM_WALLET_KEY:?ACAPY_OEM_WALLET_KEY not set; copy .env.example to .env}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
@@ -481,7 +481,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=consumer-a-wallet
-      - ACAPY_WALLET_KEY=consumer-a-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_CONSUMER_A_WALLET_KEY:?ACAPY_CONSUMER_A_WALLET_KEY not set; copy .env.example to .env}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
@@ -512,7 +512,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=egw-wallet
-      - ACAPY_WALLET_KEY=egw-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_EGW_WALLET_KEY:?ACAPY_EGW_WALLET_KEY not set; copy .env.example to .env}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
@@ -543,7 +543,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=sd-wallet
-      - ACAPY_WALLET_KEY=sd-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_SD_WALLET_KEY:?ACAPY_SD_WALLET_KEY not set; copy .env.example to .env}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
@@ -595,8 +595,8 @@ services:
       - "8090:8090"
     environment:
       - DITTO_URL=http://nginx:80
-      - DITTO_USER=ditto
-      - DITTO_PASS=c2dta
+      - DITTO_USER=${DITTO_USER:?DITTO_USER not set; copy .env.example to .env}
+      - DITTO_PASS=${DITTO_PASS:?DITTO_PASS not set; copy .env.example to .env}
       - MQTT_BROKER_HOST=mosquitto
       - MQTT_BROKER_PORT=8883
       - IPFS_API_URL=http://ipfs:5001
