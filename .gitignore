@@ -8,6 +8,9 @@ yocto/tmp/
 # VSCode
 .vscode/settings.local.json
 
+# Claude Code local config
+.claude/settings.local.json
+
 # Python
 __pycache__/
 *.pyc
