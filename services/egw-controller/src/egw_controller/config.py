@@ -5,13 +5,23 @@ from __future__ import annotations
 import os
 
 
+def _require(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(
+            f"Required environment variable {name} is not set. "
+            "Copy .env.example to .env and fill in the credentials."
+        )
+    return value
+
+
 def get_config() -> dict:
     """Retorna configuracao do EGW Controller."""
     return {
         # Ditto
         "ditto_url": os.getenv("DITTO_URL", "http://localhost:8080"),
-        "ditto_user": os.getenv("DITTO_USER", "ditto"),
-        "ditto_pass": os.getenv("DITTO_PASS", "c2dta"),
+        "ditto_user": _require("DITTO_USER"),
+        "ditto_pass": _require("DITTO_PASS"),
         # MQTT
         "mqtt_broker_host": os.getenv("MQTT_BROKER_HOST", "localhost"),
         "mqtt_broker_port": int(os.getenv("MQTT_BROKER_PORT", "8883")),
