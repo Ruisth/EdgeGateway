@@ -19,6 +19,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8,<9",
+  "ruff>=0.6",
+  "mypy>=1.11",
 ]
 api = [
   "fastapi>=0.115,<1",

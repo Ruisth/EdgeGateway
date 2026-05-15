@@ -6,7 +6,7 @@ import logging
 
 from egw_controller.clients.ditto_client import DittoClient
 from egw_controller.clients.fabric_client import FabricClient
-from egw_controller.models import UntwinRequest, UCResponse
+from egw_controller.models import UCResponse, UntwinRequest
 from egw_controller.transaction import TransactionManager
 
 logger = logging.getLogger(__name__)

@@ -6,7 +6,7 @@ import json
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any
 
 
 @dataclass(slots=True)
@@ -14,7 +14,7 @@ class DIDCommMessage:
     """A simplified DIDComm v2 message representation."""
 
     type: str
-    body: Dict[str, Any]
+    body: dict[str, Any]
     to: str
     frm: str
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -32,7 +32,7 @@ class DIDCommMessage:
         return json.dumps(payload, separators=(",", ":"), sort_keys=True)
 
     @classmethod
-    def from_json(cls, raw: str) -> "DIDCommMessage":
+    def from_json(cls, raw: str) -> DIDCommMessage:
         data = json.loads(raw)
         return cls(
             id=data["id"],
@@ -67,7 +67,7 @@ class EncryptedDIDCommMessage:
         return json.dumps(payload, separators=(",", ":"), sort_keys=True)
 
     @classmethod
-    def from_json(cls, raw: str) -> "EncryptedDIDCommMessage":
+    def from_json(cls, raw: str) -> EncryptedDIDCommMessage:
         data = json.loads(raw)
         return cls(
             ciphertext=data["ciphertext"],

@@ -6,14 +6,12 @@ o paper EdgeGateway_Paper.pdf.
 
 from __future__ import annotations
 
-from datetime import datetime
-from enum import Enum
-from typing import Optional
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class DeviceState(str, Enum):
+class DeviceState(StrEnum):
     """Estados do ciclo de vida de um dispositivo (paper Seccao 3.1)."""
 
     MANUFACTURED = "Manufactured"
@@ -24,7 +22,7 @@ class DeviceState(str, Enum):
     DECOMMISSIONED = "Decommissioned"
 
 
-class DeviceType(str, Enum):
+class DeviceType(StrEnum):
     """Tipos de dispositivo C2DTA."""
 
     EGW = "EdgeGateway"
@@ -129,4 +127,4 @@ class UCResponse(BaseModel):
     use_case: str
     device_id: str = ""
     message: str = ""
-    data: Optional[dict] = None
+    data: dict | None = None

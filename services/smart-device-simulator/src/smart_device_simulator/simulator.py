@@ -9,7 +9,7 @@ Gera dados sensoriais realistas a 1 Hz conforme o paper:
 from __future__ import annotations
 
 import random
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from smart_device_simulator.models import GeoLocation, SensorReading
 
@@ -63,5 +63,5 @@ class SmartDeviceSimulator:
             device_uuid=self.device_uuid,
             heartbeat_bpm=self._next_heartbeat(),
             geolocation=self._next_geolocation(),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )

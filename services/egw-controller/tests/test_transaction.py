@@ -1,6 +1,6 @@
 """Testes para o TransactionManager."""
 
-from egw_controller.transaction import StepStatus, TransactionManager
+from egw_controller.transaction import StepStatus
 
 
 def test_create_transaction(tx_manager):

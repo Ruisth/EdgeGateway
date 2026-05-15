@@ -1,0 +1,53 @@
+# Repo-wide tooling configuration.
+# Each service keeps its own [project] / build metadata in
+# services/<name>/pyproject.toml; this file only configures linters and
+# type checkers that run across the whole tree.
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = [
+    "services/egw-controller/src",
+    "services/didcomm-agent/src",
+    "services/smart-device-simulator/src",
+    "services/aca-py/plugins",
+]
+extend-exclude = [
+    "uni",
+    "yocto",
+    "services/*/src/*.egg-info",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "B",   # flake8-bugbear
+    "I",   # isort
+    "UP",  # pyupgrade
+]
+# E501 (line-too-long) intentionally left off until existing long lines are
+# wrapped — re-enable once the backlog is cleared.
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B011"]
+"**/examples/**" = ["B"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+ignore_missing_imports = true
+files = [
+    "services/egw-controller/src",
+    "services/didcomm-agent/src",
+    "services/smart-device-simulator/src",
+]
+exclude = [
+    "^.*/tests/",
+    "^.*/examples/",
+    "^.*\\.egg-info/",
+]

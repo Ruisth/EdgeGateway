@@ -96,7 +96,7 @@ class MQTTPublisher:
             while self._running:
                 reading = self.simulator.read_sensors()
                 payload = reading.to_mqtt_payload()
-                result = self._client.publish(self._topic, payload, qos=1)
+                self._client.publish(self._topic, payload, qos=1)
                 logger.debug(
                     "Publicado: bpm=%d lat=%.7f lon=%.7f",
                     reading.heartbeat_bpm,

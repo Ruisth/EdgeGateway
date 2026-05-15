@@ -2,7 +2,7 @@
 
 import pytest
 
-from egw_controller.models import EnrollmentRequest, UCResponse
+from egw_controller.models import EnrollmentRequest
 from egw_controller.use_cases import uc1_oem_enrollment
 
 

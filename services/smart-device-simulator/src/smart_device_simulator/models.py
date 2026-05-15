@@ -6,7 +6,8 @@ gera heartbeat, geolocalizacao e timestamp a 1 Hz.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -24,7 +25,7 @@ class SensorReading(BaseModel):
     heartbeat_bpm: int = Field(..., ge=0, le=300, description="Batimento cardiaco (bpm)")
     geolocation: GeoLocation = Field(..., description="Localizacao GPS")
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="Timestamp UTC ISO 8601",
     )
 

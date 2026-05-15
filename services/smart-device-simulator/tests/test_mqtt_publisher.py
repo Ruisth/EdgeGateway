@@ -9,8 +9,8 @@ import os
 
 import pytest
 
-from smart_device_simulator.simulator import SmartDeviceSimulator
 from smart_device_simulator.mqtt_publisher import MQTTPublisher
+from smart_device_simulator.simulator import SmartDeviceSimulator
 
 CERTS_DIR = os.path.join(
     os.path.dirname(__file__), "..", "..", "mosquitto", "certs"

@@ -11,7 +11,7 @@ Ver paper Seccoes 3.2.4, 3.2.5, 3.2.8.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ async def handle_ownership_issuance(
             "attributes": [
                 {"name": "device_uuid", "value": device_uuid},
                 {"name": "owner_did", "value": owner_did},
-                {"name": "acquisition_date", "value": datetime.now(timezone.utc).isoformat()},
+                {"name": "acquisition_date", "value": datetime.now(UTC).isoformat()},
                 {"name": "previous_owner_did", "value": previous_owner_did},
                 {"name": "transfer_tx_hash", "value": transfer_tx_hash},
             ],
