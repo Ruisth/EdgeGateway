@@ -179,19 +179,11 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.21"
-          cache: false
-
-      - name: Download device-lifecycle modules
-        working-directory: services/fabric/chaincode/device-lifecycle
-        run: go mod download
+          cache-dependency-path: services/fabric/chaincode/*/go.sum
 
       - name: Vet device-lifecycle
         working-directory: services/fabric/chaincode/device-lifecycle
         run: go vet ./...
-
-      - name: Download dataset-tracking modules
-        working-directory: services/fabric/chaincode/dataset-tracking
-        run: go mod download
 
       - name: Vet dataset-tracking
         working-directory: services/fabric/chaincode/dataset-tracking

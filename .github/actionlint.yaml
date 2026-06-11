@@ -1,0 +1,9 @@
+# actionlint configuration
+# https://github.com/rhysd/actionlint/blob/main/docs/config.md
+
+self-hosted-runner:
+  # build-yocto.yml targets a self-hosted runner labelled "yocto"
+  # (Poky/bitbake pre-installed). The runner does not exist yet; the
+  # workflow only triggers on yocto/** changes and workflow_dispatch.
+  labels:
+    - yocto
