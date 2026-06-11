@@ -9,6 +9,11 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
+from .exceptions import (
+    InvalidMessageError,
+    MessageTamperingError,
+    UnknownPeerError,
+)
 from .service import DIDCommAgent, DIDCommInvitation, EncryptedDIDCommMessage
 from .storage import Storage
 
@@ -74,6 +79,28 @@ class AppState:
 
 app = FastAPI(title="EdgeGateway DIDComm Agent")
 state = AppState()
+
+
+@app.exception_handler(InvalidMessageError)
+async def _invalid_message_handler(_request, exc: InvalidMessageError):
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(status_code=400, content={"detail": exc.reason})
+
+
+@app.exception_handler(UnknownPeerError)
+async def _unknown_peer_handler(_request, exc: UnknownPeerError):
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(status_code=404, content={"detail": "unknown-peer"})
+
+
+@app.exception_handler(MessageTamperingError)
+async def _tamper_handler(_request, _exc: MessageTamperingError):
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(status_code=400, content={"detail": "message-tampering"})
+
 
 # Optional storage activation
 _db_path = os.getenv("DIDCOMM_DB_PATH")

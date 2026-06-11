@@ -1,6 +1,10 @@
 """DIDComm agent prototype for the Edge Gateway."""
 
-from .exceptions import MessageTamperingError, UnknownPeerError
+from .exceptions import (
+    InvalidMessageError,
+    MessageTamperingError,
+    UnknownPeerError,
+)
 from .message import DIDCommMessage, EncryptedDIDCommMessage
 from .service import DIDCommAgent, DIDCommInvitation
 
@@ -9,6 +13,7 @@ __all__ = [
     "DIDCommInvitation",
     "DIDCommMessage",
     "EncryptedDIDCommMessage",
+    "InvalidMessageError",
     "UnknownPeerError",
     "MessageTamperingError",
 ]

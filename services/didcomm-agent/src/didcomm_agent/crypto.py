@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import logging
 import os
 from dataclasses import dataclass
 
@@ -12,6 +13,8 @@ from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 HKDF_INFO = b"edge-gateway-didcomm"
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -47,6 +50,7 @@ def generate_keypair() -> KeyPair:
     """Generate a fresh X25519 key pair."""
 
     private = x25519.X25519PrivateKey.generate()
+    logger.debug("Novo par X25519 gerado")
     return KeyPair(private, private.public_key())
 
 

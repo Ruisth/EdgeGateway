@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
+import logging
 import sqlite3
 from pathlib import Path
 
 from .crypto import KeyPair, keypair_from_private_b64
 from .service import DIDCommInvitation
 
+logger = logging.getLogger(__name__)
+
 
 class Storage:
     def __init__(self, db_path: Path) -> None:
         self.db_path = db_path
+        logger.info("DIDComm storage em %s", db_path)
         self._init_db()
 
     def _connect(self) -> sqlite3.Connection:
@@ -61,6 +65,7 @@ class Storage:
                 (agent_id, did, endpoint, label, keypair.private_b64()),
             )
             conn.commit()
+            logger.info("Agente %s persistido (did=%s)", agent_id, did)
         finally:
             conn.close()
 
@@ -90,6 +95,10 @@ class Storage:
                 (agent_id, invitation.did, invitation.endpoint, invitation.public_key, invitation.label),
             )
             conn.commit()
+            logger.info(
+                "Peer %s registado em %s (endpoint=%s)",
+                invitation.did, agent_id, invitation.endpoint,
+            )
         finally:
             conn.close()
 

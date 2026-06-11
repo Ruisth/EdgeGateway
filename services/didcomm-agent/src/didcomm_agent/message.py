@@ -3,10 +3,34 @@
 from __future__ import annotations
 
 import json
+import logging
 import time
 import uuid
 from dataclasses import dataclass, field
 from typing import Any
+
+from .exceptions import InvalidMessageError
+
+logger = logging.getLogger(__name__)
+
+
+def _decode_json(raw: str) -> dict[str, Any]:
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        logger.warning("Falha a descodificar JSON DIDComm: %s", exc)
+        raise InvalidMessageError("malformed-json") from exc
+    if not isinstance(data, dict):
+        logger.warning("Payload DIDComm nao e um objecto JSON: %s", type(data).__name__)
+        raise InvalidMessageError("not-a-json-object")
+    return data
+
+
+def _require(data: dict[str, Any], *keys: str) -> None:
+    missing = [k for k in keys if k not in data]
+    if missing:
+        logger.warning("Campos DIDComm em falta: %s", missing)
+        raise InvalidMessageError(f"missing-fields:{','.join(missing)}")
 
 
 @dataclass(slots=True)
@@ -33,7 +57,8 @@ class DIDCommMessage:
 
     @classmethod
     def from_json(cls, raw: str) -> DIDCommMessage:
-        data = json.loads(raw)
+        data = _decode_json(raw)
+        _require(data, "id", "type", "body", "to", "from", "created_time")
         return cls(
             id=data["id"],
             type=data["type"],
@@ -68,7 +93,8 @@ class EncryptedDIDCommMessage:
 
     @classmethod
     def from_json(cls, raw: str) -> EncryptedDIDCommMessage:
-        data = json.loads(raw)
+        data = _decode_json(raw)
+        _require(data, "ciphertext", "nonce", "to", "from", "created_time")
         return cls(
             ciphertext=data["ciphertext"],
             nonce=data["nonce"],
