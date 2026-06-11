@@ -59,7 +59,9 @@ jobs:
       - run: pip install 'bandit[toml]'
 
       - name: bandit (medium+high severity, medium+high confidence)
-        run: bandit -r services/ -ll -ii --exclude services/didcomm-agent/data,services/*/tests
+        env:
+          BANDIT_EXCLUDES: "services/didcomm-agent/data,services/didcomm-agent/tests,services/egw-controller/tests,services/smart-device-simulator/tests,services/ditto/tests,services/ipfs/tests,services/mosquitto/tests"
+        run: bandit -r services/ -ll -ii --exclude "$BANDIT_EXCLUDES"
 
   lint-dockerfiles:
     name: Lint Dockerfiles (hadolint)
@@ -85,10 +87,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run actionlint
-        run: |
-          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
-          ./actionlint -color
+      - uses: raven-actions/actionlint@v2
+        with:
+          files: ".github/workflows/*.yml"
 
   test-sd-simulator:
     name: Test SD Simulator
@@ -145,7 +146,7 @@ jobs:
         run: python -m pytest tests/ -v
 
   test-integration-smoke:
-    name: Integration smoke (skipped without services)
+    name: Integration smoke (collect-only)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -157,16 +158,14 @@ jobs:
       - name: Install pytest + integration deps
         run: pip install pytest paho-mqtt requests
 
-      - name: Collect integration tests (asserts they import cleanly)
+      # Only validates the integration tests import cleanly. Their skipif
+      # logic checks (CI != "true" AND no <SERVICE>_URL), which on a CI
+      # runner without docker-compose up evaluates to False and would make
+      # them actually try to connect — so we don't run them here. A
+      # workflow_dispatch nightly job should bring services up and run them.
+      - name: Collect integration tests
         run: |
           pytest --collect-only -q \
-            services/ditto/tests \
-            services/ipfs/tests \
-            services/mosquitto/tests
-
-      - name: Run integration tests (will skip when services aren't reachable)
-        run: |
-          pytest -v \
             services/ditto/tests \
             services/ipfs/tests \
             services/mosquitto/tests
@@ -180,10 +179,19 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.21"
+          cache: false
+
+      - name: Download device-lifecycle modules
+        working-directory: services/fabric/chaincode/device-lifecycle
+        run: go mod download
 
       - name: Vet device-lifecycle
         working-directory: services/fabric/chaincode/device-lifecycle
         run: go vet ./...
+
+      - name: Download dataset-tracking modules
+        working-directory: services/fabric/chaincode/dataset-tracking
+        run: go mod download
 
       - name: Vet dataset-tracking
         working-directory: services/fabric/chaincode/dataset-tracking

@@ -1,0 +1,12 @@
+## Hadolint configuration
+##
+## DL3008 (pin apt-get install versions) is disabled because pinning curl in
+## a slim Debian base across distribution rebuilds is fragile and the cure is
+## worse than the disease. Re-enable once we move to apt-mark/pip-tools-style
+## pinning of every system package.
+##
+## DL3009 (clean apt cache in same RUN) is satisfied by every Dockerfile
+## (`rm -rf /var/lib/apt/lists/*` in the same RUN); kept enabled.
+
+ignored:
+  - DL3008
