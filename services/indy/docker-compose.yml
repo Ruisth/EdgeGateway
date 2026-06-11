@@ -16,7 +16,7 @@ services:
       - "9704:9704"    # Node 4
     environment:
       - GENESIS_URL=
-      - LEDGER_SEED=C2DTA000000000000000000Steward1
+      - LEDGER_SEED=${INDY_LEDGER_SEED:?set via repo-root .env (run with --env-file ../../.env)}
       - LOG_LEVEL=INFO
     volumes:
       - indy-data:/home/indy/ledger

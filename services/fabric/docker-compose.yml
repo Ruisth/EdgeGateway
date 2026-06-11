@@ -41,8 +41,8 @@ services:
     image: couchdb:3.3
     container_name: c2dta-couchdb0
     environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=adminpw
+      - COUCHDB_USER=${COUCHDB_USER:?set via repo-root .env (run with --env-file ../../.env)}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:?set via repo-root .env (run with --env-file ../../.env)}
     volumes:
       - couchdb0-data:/opt/couchdb/data
     restart: unless-stopped
@@ -68,8 +68,8 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${COUCHDB_USER:?set via repo-root .env (run with --env-file ../../.env)}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD:?set via repo-root .env (run with --env-file ../../.env)}
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
       - ./organizations/peerOrganizations/consortium.c2dta.example.com/peers/peer0.consortium.c2dta.example.com/msp:/etc/hyperledger/fabric/msp
@@ -86,8 +86,8 @@ services:
     image: couchdb:3.3
     container_name: c2dta-couchdb1
     environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=adminpw
+      - COUCHDB_USER=${COUCHDB_USER:?set via repo-root .env (run with --env-file ../../.env)}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:?set via repo-root .env (run with --env-file ../../.env)}
     volumes:
       - couchdb1-data:/opt/couchdb/data
     restart: unless-stopped
@@ -113,8 +113,8 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${COUCHDB_USER:?set via repo-root .env (run with --env-file ../../.env)}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD:?set via repo-root .env (run with --env-file ../../.env)}
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
       - ./organizations/peerOrganizations/oem.c2dta.example.com/peers/peer0.oem.c2dta.example.com/msp:/etc/hyperledger/fabric/msp

@@ -387,7 +387,7 @@ services:
     environment:
       - IP=indy-pool
       - GENESIS_URL=
-      - LEDGER_SEED=000000000000000000000000Steward1
+      - LEDGER_SEED=${INDY_LEDGER_SEED:?INDY_LEDGER_SEED not set; copy .env.example to .env}
       - LOG_LEVEL=INFO
       - PORT=9000
     volumes:

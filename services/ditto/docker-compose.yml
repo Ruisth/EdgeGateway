@@ -62,7 +62,7 @@ services:
     container_name: c2dta-ditto-gateway
     environment:
       - ENABLE_DUMMY_AUTH=true
-      - DEVOPS_PASSWORD=c2dta-devops
+      - DEVOPS_PASSWORD=${DITTO_DEVOPS_PASSWORD:?set via repo-root .env (run with --env-file ../../.env)}
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
     depends_on:
       - ditto-policies

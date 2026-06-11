@@ -19,7 +19,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=consortium-wallet
-      - ACAPY_WALLET_KEY=consortium-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_CONSORTIUM_WALLET_KEY:?set via repo-root .env (run with --env-file ../../.env)}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
@@ -46,7 +46,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=oem-wallet
-      - ACAPY_WALLET_KEY=oem-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_OEM_WALLET_KEY:?set via repo-root .env (run with --env-file ../../.env)}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
@@ -73,7 +73,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=consumer-a-wallet
-      - ACAPY_WALLET_KEY=consumer-a-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_CONSUMER_A_WALLET_KEY:?set via repo-root .env (run with --env-file ../../.env)}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
@@ -100,7 +100,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=egw-wallet
-      - ACAPY_WALLET_KEY=egw-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_EGW_WALLET_KEY:?set via repo-root .env (run with --env-file ../../.env)}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
@@ -127,7 +127,7 @@ services:
       - ACAPY_ADMIN_INSECURE_MODE=true
       - ACAPY_WALLET_TYPE=askar
       - ACAPY_WALLET_NAME=sd-wallet
-      - ACAPY_WALLET_KEY=sd-key-dev
+      - ACAPY_WALLET_KEY=${ACAPY_SD_WALLET_KEY:?set via repo-root .env (run with --env-file ../../.env)}
       - ACAPY_GENESIS_URL=http://indy-pool:9000/genesis
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true

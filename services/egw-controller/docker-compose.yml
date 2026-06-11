@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   egw-controller:
     build: .
@@ -9,8 +7,8 @@ services:
       - "8090:8090"
     environment:
       - DITTO_URL=http://nginx:8080
-      - DITTO_USER=ditto
-      - DITTO_PASS=c2dta
+      - DITTO_USER=${DITTO_USER:?set via repo-root .env (run with --env-file ../../.env)}
+      - DITTO_PASS=${DITTO_PASS:?set via repo-root .env (run with --env-file ../../.env)}
       - MQTT_BROKER_HOST=mosquitto
       - MQTT_BROKER_PORT=8883
       - IPFS_API_URL=http://ipfs:5001
