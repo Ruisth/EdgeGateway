@@ -122,7 +122,7 @@ EdgeGateway/
 ├── yocto/
 │   └── layers/meta-edgegateway/ Custom Yocto layer for edge device deployment
 ├── docker-compose.yml           Orchestrates all ~20 containers on network c2dta-net
-├── EdgeGateway_Paper.pdf        Reference paper (pre-print)
+├── uni/paper/EdgeGateway_Paper.pdf  Reference paper (pre-print)
 └── LICENSE                      MIT
 ```
 

@@ -63,11 +63,15 @@ python examples/run_full_lifecycle.py --base-url http://localhost:8090
 
 ## Variaveis de Ambiente
 
+As credenciais (`DITTO_USER`, `DITTO_PASS`) sao **obrigatorias** — leem-se
+do `.env` da raiz (copia de `.env.example`) e o servico falha cedo se
+estiverem em falta.
+
 | Variavel | Default | Descricao |
 |---|---|---|
 | `DITTO_URL` | `http://localhost:8080` | URL da API Ditto |
-| `DITTO_USER` | `ditto` | Utilizador Ditto |
-| `DITTO_PASS` | `c2dta` | Password Ditto |
+| `DITTO_USER` | _(sem default)_ | Utilizador Ditto (obrigatorio) |
+| `DITTO_PASS` | _(sem default)_ | Password Ditto (obrigatorio) |
 | `MQTT_BROKER_HOST` | `localhost` | Host Mosquitto |
 | `MQTT_BROKER_PORT` | `8883` | Porta TLS Mosquitto |
 | `IPFS_API_URL` | `http://localhost:5001` | URL API IPFS |

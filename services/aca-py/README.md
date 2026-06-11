@@ -63,4 +63,4 @@ curl -X POST http://localhost:8021/out-of-band/create-invitation \
   -d '{"handshake_protocols":["https://didcomm.org/didexchange/1.0"]}'
 ```
 
-> Ultima revisao: 2026-03-19
+> Ultima revisao: 2026-06-11

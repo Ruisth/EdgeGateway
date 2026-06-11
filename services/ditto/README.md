@@ -9,7 +9,9 @@ services/ditto/
   docker-compose.yml          Stack completa Ditto 3.x (7 servicos)
   nginx/
     nginx.conf                Reverse proxy com autenticacao basica
-    nginx.htpasswd            Credenciais dev (ditto/c2dta)
+    nginx.htpasswd            Gerado por generate-htpasswd.sh (gitignored)
+    nginx.htpasswd.example    Placeholder versionado
+    generate-htpasswd.sh      Gera nginx.htpasswd a partir do .env da raiz
   connectivity/
     mqtt-connection.json      Configuracao da conexao MQTT source
   wot/
@@ -79,11 +81,18 @@ Features:
 
 O ficheiro `wot/smartwatch-td.jsonld` define o modelo W3C WoT do smartwatch, referenciado no UC2 (registo de modelo de dispositivo).
 
-## Credenciais (dev)
+## Credenciais
 
-| Usuario | Password | Permissoes |
-|---|---|---|
-| `ditto` | `c2dta` | API de things (CRUD) |
-| `devops` | `c2dta-devops` | DevOps API (conectividade, metricas) |
+Lidas do `.env` da raiz (copia-se `.env.example` e preenche-se). Utilizadores
+expostos pelo nginx (uma linha htpasswd por cada):
 
-> Ultima revisao: 2026-03-19
+| Variavel `.env`           | Utilizador | Permissoes                              |
+|---------------------------|------------|-----------------------------------------|
+| `DITTO_USER`/`DITTO_PASS` | `ditto`    | API de things (CRUD)                    |
+| `DITTO_DEVOPS_USER`/`DITTO_DEVOPS_PASSWORD` | `devops` | DevOps API (conectividade, metricas) |
+
+Para gerar/regenerar o `nginx.htpasswd` localmente:
+
+```bash
+bash nginx/generate-htpasswd.sh
+```
