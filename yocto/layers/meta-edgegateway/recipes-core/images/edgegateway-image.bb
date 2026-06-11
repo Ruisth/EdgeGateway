@@ -14,14 +14,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     containerd \
     docker \
     docker-compose \
-<<<<<<< HEAD
-    \
-=======
-    didcomm-agent-compose \
     mosquitto-compose \
-    sd-simulator-compose \
     egw-controller-compose \
->>>>>>> 02ed0cf0233d25fdf43da200d6f31c53d0813984
     python3 \
     python3-pip \
     python3-aries-cloudagent \
@@ -52,6 +46,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 
 # Componentes removidos vs versão anterior:
 #   didcomm-agent-compose → substituído por python3-aries-cloudagent (ACA-py)
+#   sd-simulator-compose   → ferramenta de desenvolvimento; não pertence à imagem edge
 #   nats-server            → não usado no stack C2DTA
 #   onnxruntime            → movido para Fase 3 (federated learning, opcional)
 #   tensorflow-lite        → movido para Fase 3 (federated learning, opcional)

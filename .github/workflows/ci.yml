@@ -11,6 +11,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  merge-markers:
+    name: No unresolved merge markers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Conflict markers from merge 02ed0cf sat undetected in 6 files;
+      # this guard fails the build if any reappear. The pattern is built
+      # with repetition syntax so this workflow doesn't match itself.
+      - name: Scan for conflict markers
+        run: |
+          if grep -rEln "^(<{7}|>{7}) " --exclude-dir=.git .; then
+            echo "::error::Unresolved merge conflict markers found (files above)"
+            exit 1
+          fi
+          echo "No conflict markers found."
+
   lint:
     name: Lint (ruff)
     runs-on: ubuntu-latest
