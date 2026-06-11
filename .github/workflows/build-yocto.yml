@@ -7,6 +7,11 @@ on:
       - "yocto/**"
   workflow_dispatch:
 
+# GitHub deprecates Node 20 action runtimes on 2026-06-16; opt into the
+# Node 24 default ahead of the forced migration.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build:
     name: Build Yocto Image
