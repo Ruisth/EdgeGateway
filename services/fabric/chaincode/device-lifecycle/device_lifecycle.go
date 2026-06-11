@@ -107,13 +107,21 @@ func (t *DeviceLifecycleChaincode) RegisterDeviceModel(stub shim.ChaincodeStubIn
 		CreatedAt:    time.Now().UTC().Format(time.RFC3339),
 	}
 
-	key, _ := stub.CreateCompositeKey("DeviceModel", []string{model.ModelID})
-	data, _ := json.Marshal(model)
+	key, err := stub.CreateCompositeKey("DeviceModel", []string{model.ModelID})
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao construir chave: %v", err))
+	}
+	data, err := json.Marshal(model)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao serializar modelo: %v", err))
+	}
 	if err := stub.PutState(key, data); err != nil {
 		return shim.Error(fmt.Sprintf("erro ao guardar modelo: %v", err))
 	}
 
-	stub.SetEvent("ModelRegistered", data)
+	if err := stub.SetEvent("ModelRegistered", data); err != nil {
+		return shim.Error(fmt.Sprintf("erro ao emitir evento: %v", err))
+	}
 	return shim.Success(data)
 }
 
@@ -135,12 +143,17 @@ func (t *DeviceLifecycleChaincode) ManufactureDevice(stub shim.ChaincodeStubInte
 		UpdatedAt:      now,
 	}
 
-	data, _ := json.Marshal(device)
+	data, err := json.Marshal(device)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao serializar dispositivo: %v", err))
+	}
 	if err := stub.PutState(device.DeviceID, data); err != nil {
 		return shim.Error(fmt.Sprintf("erro ao guardar dispositivo: %v", err))
 	}
 
-	stub.SetEvent("DeviceManufactured", data)
+	if err := stub.SetEvent("DeviceManufactured", data); err != nil {
+		return shim.Error(fmt.Sprintf("erro ao emitir evento: %v", err))
+	}
 	return shim.Success(data)
 }
 
@@ -213,9 +226,16 @@ func (t *DeviceLifecycleChaincode) DecommissionDevice(stub shim.ChaincodeStubInt
 	device.State = StateDecommissioned
 	device.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 
-	data, _ := json.Marshal(device)
-	stub.PutState(device.DeviceID, data)
-	stub.SetEvent("DeviceDecommissioned", data)
+	data, err := json.Marshal(device)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao serializar dispositivo: %v", err))
+	}
+	if err := stub.PutState(device.DeviceID, data); err != nil {
+		return shim.Error(fmt.Sprintf("erro ao guardar dispositivo: %v", err))
+	}
+	if err := stub.SetEvent("DeviceDecommissioned", data); err != nil {
+		return shim.Error(fmt.Sprintf("erro ao emitir evento: %v", err))
+	}
 	return shim.Success(data)
 }
 
@@ -297,13 +317,18 @@ func (t *DeviceLifecycleChaincode) transition(
 	device.State = toState
 	device.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 
-	data, _ := json.Marshal(device)
+	data, err := json.Marshal(device)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao serializar dispositivo: %v", err))
+	}
 	if err := stub.PutState(deviceID, data); err != nil {
 		return shim.Error(fmt.Sprintf("erro ao guardar dispositivo: %v", err))
 	}
 
 	eventName := fmt.Sprintf("Device%s", toState)
-	stub.SetEvent(eventName, data)
+	if err := stub.SetEvent(eventName, data); err != nil {
+		return shim.Error(fmt.Sprintf("erro ao emitir evento: %v", err))
+	}
 	return shim.Success(data)
 }
 
@@ -323,7 +348,10 @@ func (t *DeviceLifecycleChaincode) richQuery(stub shim.ChaincodeStubInterface, q
 		results = append(results, kv.Value)
 	}
 
-	data, _ := json.Marshal(results)
+	data, err := json.Marshal(results)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao serializar resultados: %v", err))
+	}
 	return shim.Success(data)
 }
 

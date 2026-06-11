@@ -8,6 +8,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
@@ -60,10 +61,14 @@ func (t *DatasetTrackingChaincode) RegisterDataset(stub shim.ChaincodeStubInterf
 		return shim.Error("esperados 8 argumentos: datasetID, deviceID, ipfsHash, ownerDID, sizeBytes, recordCount, startTime, endTime")
 	}
 
-	var sizeBytes int64
-	var recordCount int
-	fmt.Sscanf(args[4], "%d", &sizeBytes)
-	fmt.Sscanf(args[5], "%d", &recordCount)
+	sizeBytes, err := strconv.ParseInt(args[4], 10, 64)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("sizeBytes invalido (%q): %v", args[4], err))
+	}
+	recordCount, err := strconv.Atoi(args[5])
+	if err != nil {
+		return shim.Error(fmt.Sprintf("recordCount invalido (%q): %v", args[5], err))
+	}
 
 	dataset := Dataset{
 		DatasetID:   args[0],
@@ -77,13 +82,20 @@ func (t *DatasetTrackingChaincode) RegisterDataset(stub shim.ChaincodeStubInterf
 		CreatedAt:   time.Now().UTC().Format(time.RFC3339),
 	}
 
-	key, _ := stub.CreateCompositeKey("Dataset", []string{dataset.DeviceID, dataset.DatasetID})
-	data, _ := json.Marshal(dataset)
+	key, err := stub.CreateCompositeKey("Dataset", []string{dataset.DeviceID, dataset.DatasetID})
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao construir chave: %v", err))
+	}
+	data, err := json.Marshal(dataset)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao serializar dataset: %v", err))
+	}
 	if err := stub.PutState(key, data); err != nil {
 		return shim.Error(fmt.Sprintf("erro ao guardar dataset: %v", err))
 	}
-
-	stub.SetEvent("DatasetRegistered", data)
+	if err := stub.SetEvent("DatasetRegistered", data); err != nil {
+		return shim.Error(fmt.Sprintf("erro ao emitir evento: %v", err))
+	}
 	return shim.Success(data)
 }
 
@@ -94,7 +106,10 @@ func (t *DatasetTrackingChaincode) QueryDataset(stub shim.ChaincodeStubInterface
 		return shim.Error("esperados 2 argumentos: deviceID, datasetID")
 	}
 
-	key, _ := stub.CreateCompositeKey("Dataset", []string{args[0], args[1]})
+	key, err := stub.CreateCompositeKey("Dataset", []string{args[0], args[1]})
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao construir chave: %v", err))
+	}
 	data, err := stub.GetState(key)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("erro ao ler dataset: %v", err))
@@ -127,7 +142,10 @@ func (t *DatasetTrackingChaincode) QueryDatasetsByDevice(stub shim.ChaincodeStub
 		results = append(results, kv.Value)
 	}
 
-	data, _ := json.Marshal(results)
+	data, err := json.Marshal(results)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao serializar resultados: %v", err))
+	}
 	return shim.Success(data)
 }
 
@@ -138,19 +156,34 @@ func (t *DatasetTrackingChaincode) TransferDatasetOwnership(stub shim.ChaincodeS
 		return shim.Error("esperados 3 argumentos: deviceID, datasetID, newOwnerDID")
 	}
 
-	key, _ := stub.CreateCompositeKey("Dataset", []string{args[0], args[1]})
+	key, err := stub.CreateCompositeKey("Dataset", []string{args[0], args[1]})
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao construir chave: %v", err))
+	}
 	data, err := stub.GetState(key)
-	if err != nil || data == nil {
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao ler dataset: %v", err))
+	}
+	if data == nil {
 		return shim.Error(fmt.Sprintf("dataset nao encontrado: %s/%s", args[0], args[1]))
 	}
 
 	var dataset Dataset
-	json.Unmarshal(data, &dataset)
+	if err := json.Unmarshal(data, &dataset); err != nil {
+		return shim.Error(fmt.Sprintf("estado corrompido para %s/%s: %v", args[0], args[1], err))
+	}
 	dataset.OwnerDID = args[2]
 
-	updated, _ := json.Marshal(dataset)
-	stub.PutState(key, updated)
-	stub.SetEvent("DatasetOwnershipTransferred", updated)
+	updated, err := json.Marshal(dataset)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("erro ao serializar dataset: %v", err))
+	}
+	if err := stub.PutState(key, updated); err != nil {
+		return shim.Error(fmt.Sprintf("erro ao guardar dataset: %v", err))
+	}
+	if err := stub.SetEvent("DatasetOwnershipTransferred", updated); err != nil {
+		return shim.Error(fmt.Sprintf("erro ao emitir evento: %v", err))
+	}
 	return shim.Success(updated)
 }
 
