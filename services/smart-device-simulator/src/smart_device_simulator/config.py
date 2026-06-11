@@ -15,6 +15,9 @@ def get_config() -> dict:
         "ca_cert": os.getenv("MQTT_CA_CERT", "certs/ca.crt"),
         "client_cert": os.getenv("MQTT_CLIENT_CERT"),
         "client_key": os.getenv("MQTT_CLIENT_KEY"),
+        # Salta verificacao de hostname TLS (apenas dev; default seguro)
+        "tls_insecure": os.getenv("MQTT_TLS_INSECURE", "false").lower()
+        in ("1", "true", "yes"),
         "publish_interval_ms": int(os.getenv("SD_PUBLISH_INTERVAL_MS", "1000")),
         "initial_heartbeat": int(os.getenv("SD_INITIAL_HEARTBEAT", "72")),
         "initial_lat": float(os.getenv("SD_INITIAL_LAT", "38.7223")),

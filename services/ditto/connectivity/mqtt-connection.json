@@ -11,7 +11,8 @@
       "connectionStatus": "open",
       "uri": "ssl://mosquitto:8883",
       "failoverEnabled": true,
-      "validateCertificates": false,
+      "validateCertificates": true,
+      "ca": "__CA_PEM__",
       "sources": [
         {
           "addresses": [

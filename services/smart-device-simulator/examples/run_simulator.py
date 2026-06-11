@@ -43,6 +43,7 @@ def main():
         client_cert=cfg["client_cert"],
         client_key=cfg["client_key"],
         publish_interval_ms=cfg["publish_interval_ms"],
+        tls_insecure=cfg["tls_insecure"],
     )
 
     logger.info("A iniciar publicacao MQTT...")

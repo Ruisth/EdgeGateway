@@ -57,11 +57,12 @@ curl -X PUT -u ditto:c2dta \
 
 ### 4. Configurar conexao MQTT
 
+O script injeta a CA gerada por `generate-certs.sh` no JSON da conexao
+(`validateCertificates: true`) e aplica-a via API devops, lendo as
+credenciais do `.env` da raiz:
+
 ```bash
-curl -X POST -u devops:c2dta-devops \
-  -H 'Content-Type: application/json' \
-  -d @connectivity/mqtt-connection.json \
-  http://localhost:8080/devops/piggyback/connectivity
+bash connectivity/create-connection.sh
 ```
 
 ## Modelo Thing

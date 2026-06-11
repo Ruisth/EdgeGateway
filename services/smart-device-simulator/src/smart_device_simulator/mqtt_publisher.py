@@ -30,6 +30,7 @@ class MQTTPublisher:
         client_cert: str | None = None,
         client_key: str | None = None,
         publish_interval_ms: int = 1000,
+        tls_insecure: bool = False,
     ) -> None:
         self.simulator = simulator
         self.broker_host = broker_host
@@ -48,8 +49,15 @@ class MQTTPublisher:
             ctx.load_verify_locations(ca_cert)
             if client_cert and client_key:
                 ctx.load_cert_chain(certfile=client_cert, keyfile=client_key)
-            ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_REQUIRED
+            if tls_insecure:
+                # Requer cert do servidor (regenerar com SAN via
+                # generate-certs.sh) mas salta verificacao de hostname.
+                ctx.check_hostname = False
+                logger.warning(
+                    "MQTT_TLS_INSECURE ativo: verificacao de hostname TLS "
+                    "desativada — usar apenas em desenvolvimento."
+                )
             self._client.tls_set_context(ctx)
 
         self._client.on_connect = self._on_connect
