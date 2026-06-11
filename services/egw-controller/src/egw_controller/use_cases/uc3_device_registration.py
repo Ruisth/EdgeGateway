@@ -15,7 +15,10 @@ Fluxo SD:
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
+from datetime import UTC, datetime
 
 from egw_controller.clients.aca_py_client import AcaPyClient
 from egw_controller.clients.fabric_client import FabricClient
@@ -23,6 +26,12 @@ from egw_controller.models import DeviceRegistrationRequest, UCResponse
 from egw_controller.transaction import TransactionManager
 
 logger = logging.getLogger(__name__)
+
+
+def _genesis_vc_hash(credential: dict) -> str:
+    """SHA-256 sobre o JSON canonico da credencial (chaves ordenadas)."""
+    canonical = json.dumps(credential, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 async def execute(
@@ -43,9 +52,23 @@ async def execute(
         tx.start_step("identity")
         tx.complete_step("identity", {"device_id": request.device_id, "type": request.device_type.value})
 
-        # Passo 2: Genesis VC
+        # Passo 2: Genesis VC — o hash ancorado no ledger e o SHA-256 do
+        # conteudo canonico da credencial (emissao ACA-Py real pendente;
+        # ver docs/reviews/repo-improvement-plan.md item 3.4)
         tx.start_step("genesis")
-        tx.complete_step("genesis", {"genesis_vc": "issued"})
+        genesis_credential = {
+            "type": "GenesisVC",
+            "device_id": request.device_id,
+            "model_id": request.model_id,
+            "manufacturer_did": request.manufacturer_did,
+            "device_type": request.device_type.value,
+            "issued_at": datetime.now(UTC).isoformat(),
+        }
+        genesis_vc_hash = _genesis_vc_hash(genesis_credential)
+        tx.complete_step(
+            "genesis",
+            {"genesis_vc": genesis_credential, "genesis_vc_hash": genesis_vc_hash},
+        )
 
         # Passo 3: Registo no ledger (Manufactured)
         tx.start_step("ledger")
@@ -53,7 +76,7 @@ async def execute(
             device_id=request.device_id,
             model_id=request.model_id,
             manufacturer_id=request.manufacturer_did,
-            genesis_vc_hash="genesis-vc-hash-placeholder",
+            genesis_vc_hash=genesis_vc_hash,
         )
         tx.complete_step("ledger", result)
 
